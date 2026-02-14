@@ -27,14 +27,36 @@ export async function uploadImage(
     folder: string = 'colleges/images'
 ): Promise<UploadResult> {
     try {
-        const result = await cloudinary.uploader.upload(file, {
-            folder,
-            resource_type: 'image',
-            transformation: [
-                { width: 1920, height: 1080, crop: 'limit' },
-                { quality: 'auto', fetch_format: 'auto' },
-            ],
-        });
+        let result;
+
+        if (Buffer.isBuffer(file)) {
+            result = await new Promise<any>((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    {
+                        folder,
+                        resource_type: 'image',
+                        transformation: [
+                            { width: 1920, height: 1080, crop: 'limit' },
+                            { quality: 'auto', fetch_format: 'auto' },
+                        ],
+                    },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
+                uploadStream.end(file);
+            });
+        } else {
+            result = await cloudinary.uploader.upload(file as string, {
+                folder,
+                resource_type: 'image',
+                transformation: [
+                    { width: 1920, height: 1080, crop: 'limit' },
+                    { quality: 'auto', fetch_format: 'auto' },
+                ],
+            });
+        }
 
         return {
             public_id: result.public_id,
@@ -60,13 +82,34 @@ export async function uploadVideo(
     folder: string = 'colleges/videos'
 ): Promise<UploadResult> {
     try {
-        const result = await cloudinary.uploader.upload(file, {
-            folder,
-            resource_type: 'video',
-            transformation: [
-                { quality: 'auto' },
-            ],
-        });
+        let result;
+
+        if (Buffer.isBuffer(file)) {
+            result = await new Promise<any>((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    {
+                        folder,
+                        resource_type: 'video',
+                        transformation: [
+                            { quality: 'auto' },
+                        ],
+                    },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
+                uploadStream.end(file);
+            });
+        } else {
+            result = await cloudinary.uploader.upload(file as string, {
+                folder,
+                resource_type: 'video',
+                transformation: [
+                    { quality: 'auto' },
+                ],
+            });
+        }
 
         return {
             public_id: result.public_id,
@@ -91,11 +134,30 @@ export async function uploadDocument(
     folder: string = 'colleges/documents'
 ): Promise<UploadResult> {
     try {
-        const result = await cloudinary.uploader.upload(file, {
-            folder,
-            resource_type: 'raw',
-            access_mode: 'public',
-        });
+        let result;
+
+        if (Buffer.isBuffer(file)) {
+            result = await new Promise<any>((resolve, reject) => {
+                const uploadStream = cloudinary.uploader.upload_stream(
+                    {
+                        folder,
+                        resource_type: 'raw',
+                        access_mode: 'public',
+                    },
+                    (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result);
+                    }
+                );
+                uploadStream.end(file);
+            });
+        } else {
+            result = await cloudinary.uploader.upload(file as string, {
+                folder,
+                resource_type: 'raw',
+                access_mode: 'public',
+            });
+        }
 
         return {
             public_id: result.public_id,
