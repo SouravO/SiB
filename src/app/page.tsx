@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getAllUsers } from '@/app/actions/users';
+import { getAllColleges } from '@/app/actions/colleges';
 import UserManagementClient from '@/components/UserManagementClient';
+import CollegeManagementClient from '@/components/CollegeManagementClient';
 
 async function signOut() {
   'use server';
@@ -39,6 +41,10 @@ export default async function HomePage() {
 
   // Get all users for admin dashboard
   const allUsers = await getAllUsers();
+
+  // Get all colleges for college management
+  const collegesResult = await getAllColleges();
+  const allColleges = collegesResult.success && collegesResult.data ? collegesResult.data : [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -89,6 +95,11 @@ export default async function HomePage() {
           currentUserEmail={user.email || ''}
           isSuperAdmin={isSuperAdmin}
         />
+
+        {/* College Management Section */}
+        <div className="mt-8">
+          <CollegeManagementClient initialColleges={allColleges} />
+        </div>
 
         {/* Current User Info */}
         <div className="mt-8">
