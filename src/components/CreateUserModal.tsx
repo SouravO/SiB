@@ -7,9 +7,11 @@ interface CreateUserModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
+    currentUserEmail: string;
+    isSuperAdmin: boolean;
 }
 
-export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalProps) {
+export default function CreateUserModal({ isOpen, onClose, onSuccess, currentUserEmail, isSuperAdmin }: CreateUserModalProps) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
@@ -28,6 +30,7 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
             password,
             role,
             fullName: fullName || undefined,
+            createdBy: currentUserEmail,
         });
 
         setIsLoading(false);
@@ -167,8 +170,11 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUs
                                 className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 disabled:opacity-50"
                             >
                                 <option value="user">User</option>
-                                <option value="admin">Admin</option>
+                                {isSuperAdmin && <option value="admin">Admin</option>}
                             </select>
+                            {!isSuperAdmin && (
+                                <p className="mt-1 text-xs text-slate-500">Only super admin can create admin accounts</p>
+                            )}
                         </div>
 
                         {/* Buttons */}

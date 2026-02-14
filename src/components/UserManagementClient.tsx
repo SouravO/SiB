@@ -7,12 +7,14 @@ import { deleteUser, type UserWithProfile } from '@/app/actions/users';
 interface UserManagementClientProps {
     initialUsers: UserWithProfile[];
     currentUserId: string;
+    currentUserEmail: string;
+    isSuperAdmin: boolean;
 }
 
 // Super admin email that cannot be deleted
 const SUPER_ADMIN_EMAIL = 'studyinbengalurub2b@gmail.com';
 
-export default function UserManagementClient({ initialUsers, currentUserId }: UserManagementClientProps) {
+export default function UserManagementClient({ initialUsers, currentUserId, currentUserEmail, isSuperAdmin }: UserManagementClientProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [users, setUsers] = useState(initialUsers);
     const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
@@ -22,10 +24,16 @@ export default function UserManagementClient({ initialUsers, currentUserId }: Us
         window.location.reload();
     };
 
-    const handleDeleteUser = async (userId: string, userEmail: string) => {
+    const handleDeleteUser = async (userId: string, userEmail: string, userRole: string) => {
         // Prevent deletion of super admin
         if (userEmail === SUPER_ADMIN_EMAIL) {
             alert('Cannot delete super admin account!');
+            return;
+        }
+
+        // Prevent regular admins from deleting other admins
+        if (userRole === 'admin' && !isSuperAdmin) {
+            alert('Only super admin can delete admin accounts!');
             return;
         }
 
@@ -34,7 +42,7 @@ export default function UserManagementClient({ initialUsers, currentUserId }: Us
         }
 
         setDeletingUserId(userId);
-        const result = await deleteUser(userId);
+        const result = await deleteUser(userId, currentUserEmail);
 
         if (result.success) {
             setUsers(users.filter(u => u.id !== userId));
@@ -67,7 +75,7 @@ export default function UserManagementClient({ initialUsers, currentUserId }: Us
                         <p className="text-slate-400 text-center py-8">No users found</p>
                     ) : (
                         users.map((user) => {
-                            const isSuperAdmin = user.email === SUPER_ADMIN_EMAIL;
+                            const isSuperAdminUser = user.email === SUPER_ADMIN_EMAIL;
                             const isCurrentUser = user.id === currentUserId;
 
                             return (
@@ -86,7 +94,7 @@ export default function UserManagementClient({ initialUsers, currentUserId }: Us
                                             >
                                                 {user.role}
                                             </span>
-                                            {isSuperAdmin && (
+                                            {isSuperAdminUser && (
                                                 <span className="px-2 py-1 text-xs font-semibold rounded bg-yellow-500/20 text-yellow-400 border border-yellow-500/50">
                                                     Super Admin
                                                 </span>
@@ -105,9 +113,9 @@ export default function UserManagementClient({ initialUsers, currentUserId }: Us
                                         </p>
                                     </div>
 
-                                    {!isCurrentUser && !isSuperAdmin && (
+                                    {!isCurrentUser && !isSuperAdminUser && (
                                         <button
-                                            onClick={() => handleDeleteUser(user.id, user.email)}
+                                            onClick={() => handleDeleteUser(user.id, user.email, user.role)}
                                             disabled={deletingUserId === user.id}
                                             className="ml-4 px-4 py-2 bg-red-600/20 text-red-400 border border-red-600/50 rounded-lg hover:bg-red-600/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
@@ -125,6 +133,8 @@ export default function UserManagementClient({ initialUsers, currentUserId }: Us
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSuccess={handleSuccess}
+                currentUserEmail={currentUserEmail}
+                isSuperAdmin={isSuperAdmin}
             />
         </>
     );

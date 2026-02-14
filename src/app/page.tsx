@@ -22,6 +22,21 @@ export default async function HomePage() {
     redirect('/login');
   }
 
+  // Get current user's profile to check if they're super admin
+  const { data: currentUserProfile } = await supabase
+    .from('user_profiles')
+    .select('email, role')
+    .eq('id', user.id)
+    .single();
+
+  // Redirect regular users to user dashboard
+  if (currentUserProfile?.role === 'user') {
+    redirect('/user');
+  }
+
+  const SUPER_ADMIN_EMAIL = 'studyinbengalurub2b@gmail.com';
+  const isSuperAdmin = currentUserProfile?.email === SUPER_ADMIN_EMAIL;
+
   // Get all users for admin dashboard
   const allUsers = await getAllUsers();
 
@@ -68,7 +83,12 @@ export default async function HomePage() {
         </div>
 
         {/* User Management Section */}
-        <UserManagementClient initialUsers={allUsers} currentUserId={user.id} />
+        <UserManagementClient
+          initialUsers={allUsers}
+          currentUserId={user.id}
+          currentUserEmail={user.email || ''}
+          isSuperAdmin={isSuperAdmin}
+        />
 
         {/* Current User Info */}
         <div className="mt-8">

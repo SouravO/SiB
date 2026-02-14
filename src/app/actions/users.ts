@@ -10,6 +10,7 @@ export interface CreateUserInput {
     password: string;
     role: UserRole;
     fullName?: string;
+    createdBy?: string; // Email of the user creating this account
 }
 
 export interface UserWithProfile {
@@ -21,9 +22,17 @@ export interface UserWithProfile {
     last_sign_in_at?: string;
 }
 
+// Super admin email
+const SUPER_ADMIN_EMAIL = 'studyinbengalurub2b@gmail.com';
+
 export async function createUserWithRole(input: CreateUserInput) {
     try {
         const supabase = createAdminClient();
+
+        // Check permissions: Only super admin can create admins
+        if (input.role === 'admin' && input.createdBy !== SUPER_ADMIN_EMAIL) {
+            return { success: false, error: 'Only super admin can create admin accounts' };
+        }
 
         // 1. Create user in auth.users
         const { data: authData, error: authError } = await supabase.auth.admin.createUser({
@@ -107,9 +116,26 @@ export async function getAllUsers(): Promise<UserWithProfile[]> {
     }
 }
 
-export async function deleteUser(userId: string) {
+export async function deleteUser(userId: string, deletedBy?: string) {
     try {
         const supabase = createAdminClient();
+
+        // Get the user being deleted to check their role
+        const { data: userToDelete } = await supabase
+            .from('user_profiles')
+            .select('email, role')
+            .eq('id', userId)
+            .single();
+
+        // Check permissions: Only super admin can delete admins
+        if (userToDelete?.role === 'admin' && deletedBy !== SUPER_ADMIN_EMAIL) {
+            return { success: false, error: 'Only super admin can delete admin accounts' };
+        }
+
+        // Prevent deletion of super admin
+        if (userToDelete?.email === SUPER_ADMIN_EMAIL) {
+            return { success: false, error: 'Cannot delete super admin account' };
+        }
 
         // Delete from auth (profile will cascade delete if FK is set up)
         const { error } = await supabase.auth.admin.deleteUser(userId);

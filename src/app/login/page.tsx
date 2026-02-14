@@ -31,8 +31,19 @@ export default function LoginPage() {
       }
 
       if (data.user) {
-        // Successfully logged in, redirect to home
-        router.push('/');
+        // Get user's role to determine redirect
+        const { data: profile } = await supabase
+          .from('user_profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+
+        // Redirect based on role
+        if (profile?.role === 'admin' || !profile) {
+          router.push('/');
+        } else {
+          router.push('/user');
+        }
         router.refresh();
       }
     } catch (err) {
