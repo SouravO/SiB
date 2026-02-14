@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import AddCollegeModal from './AddCollegeModal';
 import { deleteCollege, createUniversity, getAllUniversities, deleteUniversity } from '@/app/actions/colleges';
+import CollegeDetail from './CollegeDetail';
+import { X } from 'lucide-react';
 
 interface College {
     id: string;
@@ -43,6 +45,8 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
     const [universityError, setUniversityError] = useState('');
     const [deletingUniversityId, setDeletingUniversityId] = useState<string | null>(null);
     const [universitySearchTerm, setUniversitySearchTerm] = useState('');
+    const [selectedCollegeId, setSelectedCollegeId] = useState<string | null>(null);
+
 
     const handleSuccess = () => {
         // Refresh the page to get updated college list
@@ -262,7 +266,7 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
 
                                         <div className="flex gap-2">
                                             <button
-                                                onClick={() => window.open(`/colleges/${college.slug}`, '_blank')}
+                                                onClick={() => setSelectedCollegeId(college.id)}
                                                 className="px-4 py-2 bg-blue-600/20 text-blue-400 border border-blue-600/50 rounded-lg hover:bg-blue-600/30 transition"
                                             >
                                                 View
@@ -279,6 +283,27 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
                                 ))
                             )}
                         </div>
+
+                        {/* College Details Modal - moved outside the college list div */}
+                        {selectedCollegeId && (
+                            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+                                <div className="relative w-full max-w-6xl max-h-[90vh] bg-[#020617] rounded-2xl border border-white/10 overflow-hidden flex flex-col">
+                                    <div className="flex justify-between items-center p-6 border-b border-white/10">
+                                        <h2 className="text-xl font-bold text-white">College Details</h2>
+                                        <button
+                                            onClick={() => setSelectedCollegeId(null)}
+                                            className="p-2 rounded-lg hover:bg-white/5 transition-colors"
+                                        >
+                                            <X className="w-5 h-5 text-slate-400" />
+                                        </button>
+                                    </div>
+                                    <div className="flex-1 overflow-y-auto">
+                                        <CollegeDetail collegeId={selectedCollegeId} showHeader={false} />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
 
                         {/* Stats */}
                         {colleges.length > 0 && (

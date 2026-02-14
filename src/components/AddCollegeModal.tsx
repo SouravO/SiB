@@ -206,14 +206,7 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
         }
     };
 
-    const fileToBase64 = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = error => reject(error);
-        });
-    };
+
 
     const handleSubmit = async () => {
         setIsLoading(true);
@@ -239,9 +232,12 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
             const collegeId = collegeResult.data.id;
 
             // Upload images
+            // Upload images
             for (const image of images) {
-                const base64 = await fileToBase64(image);
-                await addCollegeImage(collegeId, base64);
+                const formData = new FormData();
+                formData.append('collegeId', collegeId);
+                formData.append('file', image);
+                await addCollegeImage(formData);
             }
 
             // Add video URLs
@@ -253,9 +249,12 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
             }
 
             // Upload brochure
+            // Upload brochure
             if (brochurePdf) {
-                const base64 = await fileToBase64(brochurePdf);
-                await uploadBrochure(collegeId, base64);
+                const formData = new FormData();
+                formData.append('collegeId', collegeId);
+                formData.append('file', brochurePdf);
+                await uploadBrochure(formData);
             }
 
             setIsLoading(false);
@@ -316,8 +315,8 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
                         {[1, 2, 3, 4, 5].map((step) => (
                             <div key={step} className="flex items-center flex-1">
                                 <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${currentStep >= step
-                                        ? 'border-purple-500 bg-purple-500/20 text-purple-400'
-                                        : 'border-slate-600 text-slate-600'
+                                    ? 'border-purple-500 bg-purple-500/20 text-purple-400'
+                                    : 'border-slate-600 text-slate-600'
                                     }`}>
                                     {step}
                                 </div>
@@ -395,11 +394,10 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
                                         type="button"
                                         onClick={() => setShowAddCityModal(true)}
                                         disabled={!selectedState}
-                                        className={`px-4 py-3 rounded-lg text-white text-sm font-medium ${
-                                            selectedState
+                                        className={`px-4 py-3 rounded-lg text-white text-sm font-medium ${selectedState
                                                 ? 'bg-gradient-to-r from-cyan-600 to-purple-600'
                                                 : 'bg-gray-600 cursor-not-allowed'
-                                        }`}
+                                            }`}
                                     >
                                         +
                                     </button>
@@ -426,11 +424,10 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
                                         type="button"
                                         onClick={() => setShowAddUniversityModal(true)}
                                         disabled={!selectedCity}
-                                        className={`px-4 py-3 rounded-lg text-white text-sm font-medium ${
-                                            selectedCity
+                                        className={`px-4 py-3 rounded-lg text-white text-sm font-medium ${selectedCity
                                                 ? 'bg-gradient-to-r from-cyan-600 to-purple-600'
                                                 : 'bg-gray-600 cursor-not-allowed'
-                                        }`}
+                                            }`}
                                     >
                                         +
                                     </button>

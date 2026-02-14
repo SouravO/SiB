@@ -289,12 +289,29 @@ export async function getAllColleges() {
               name
             )
           )
+        ),
+        college_images (
+          image_url
         )
       `)
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-        return { success: true, data: data as any[] };
+
+        // Transform data to include the first image URL for each college
+        const transformedData = data.map((college: any) => {
+            // Get the first image if available
+            const firstImage = Array.isArray(college.college_images) && college.college_images.length > 0
+                ? college.college_images[0].image_url
+                : college.image_url; // fallback to the image_url field on the college record
+
+            return {
+                ...college,
+                image_url: firstImage
+            };
+        });
+
+        return { success: true, data: transformedData as any[] };
     } catch (error) {
         console.error('Error fetching colleges:', error);
         return { success: false, error: 'Failed to fetch colleges' };
@@ -343,6 +360,47 @@ export async function getCollegeById(collegeId: string) {
 }
 
 /**
+ * Get college by Slug with images and videos
+ */
+export async function getCollegeBySlug(slug: string) {
+    try {
+        const supabase = createAdminClient();
+
+        const { data: college, error: collegeError } = await supabase
+            .from('colleges')
+            .select('*')
+            .eq('slug', slug)
+            .single();
+
+        if (collegeError) throw collegeError;
+
+        const { data: images } = await supabase
+            .from('college_images')
+            .select('*')
+            .eq('college_id', college.id)
+            .order('display_order');
+
+        const { data: videos } = await supabase
+            .from('college_videos')
+            .select('*')
+            .eq('college_id', college.id)
+            .order('display_order');
+
+        return {
+            success: true,
+            data: {
+                ...college,
+                images: images || [],
+                videos: videos || [],
+            },
+        };
+    } catch (error) {
+        console.error('Error fetching college by slug:', error);
+        return { success: false, error: 'Failed to fetch college' };
+    }
+}
+
+/**
  * Create a new college
  */
 export async function createCollege(data: {
@@ -359,10 +417,28 @@ export async function createCollege(data: {
         const supabase = createAdminClient();
 
         // Generate slug from name
-        const slug = data.name
+        // Generate base slug from name
+        const baseSlug = data.name
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)/g, '');
+
+        let slug = baseSlug;
+        let counter = 1;
+
+        // Check for uniqueness
+        while (true) {
+            const { data: existing } = await supabase
+                .from('colleges')
+                .select('id')
+                .eq('slug', slug)
+                .maybeSingle();
+
+            if (!existing) break;
+
+            slug = `${baseSlug}-${counter}`;
+            counter++;
+        }
 
         const { data: college, error } = await supabase
             .from('colleges')
@@ -464,16 +540,23 @@ export async function deleteCollege(collegeId: string) {
 /**
  * Upload image to Cloudinary and save to database
  */
-export async function addCollegeImage(
-    collegeId: string,
-    imageData: string,
-    caption?: string
-) {
+export async function addCollegeImage(formData: FormData) {
     try {
         const supabase = createAdminClient();
 
+        const collegeId = formData.get('collegeId') as string;
+        const file = formData.get('file') as File;
+        const caption = formData.get('caption') as string || undefined;
+
+        if (!collegeId || !file) {
+            throw new Error('Missing required fields');
+        }
+
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
         // Upload to Cloudinary
-        const uploadResult = await uploadImage(imageData, 'colleges/images');
+        const uploadResult = await uploadImage(buffer, 'colleges/images');
 
         // Save to database
         const { data, error } = await supabase
@@ -617,12 +700,22 @@ export async function deleteCollegeVideo(videoId: string) {
 /**
  * Upload brochure PDF
  */
-export async function uploadBrochure(collegeId: string, pdfData: string) {
+export async function uploadBrochure(formData: FormData) {
     try {
         const supabase = createAdminClient();
 
+        const collegeId = formData.get('collegeId') as string;
+        const file = formData.get('file') as File;
+
+        if (!collegeId || !file) {
+            throw new Error('Missing required fields');
+        }
+
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
         // Upload to Cloudinary
-        const uploadResult = await uploadDocument(pdfData, 'colleges/documents');
+        const uploadResult = await uploadDocument(buffer, 'colleges/documents');
 
         // Update college with brochure URL
         const { data, error } = await supabase

@@ -94,7 +94,7 @@ export async function uploadDocument(
         const result = await cloudinary.uploader.upload(file, {
             folder,
             resource_type: 'raw',
-            format: 'pdf',
+            access_mode: 'public',
         });
 
         return {
