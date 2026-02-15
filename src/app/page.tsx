@@ -24,14 +24,12 @@ export default async function HomePage() {
     redirect('/login');
   }
 
-  // Get current user's profile to check if they're super admin
   const { data: currentUserProfile } = await supabase
     .from('user_profiles')
     .select('email, role')
     .eq('id', user.id)
     .single();
 
-  // Redirect regular users to user dashboard
   if (currentUserProfile?.role === 'user') {
     redirect('/user');
   }
@@ -39,93 +37,112 @@ export default async function HomePage() {
   const SUPER_ADMIN_EMAIL = 'studyinbengalurub2b@gmail.com';
   const isSuperAdmin = currentUserProfile?.email === SUPER_ADMIN_EMAIL;
 
-  // Get all users for admin dashboard
   const allUsers = await getAllUsers();
-
-  // Get all colleges for college management
   const collegesResult = await getAllColleges();
   const allColleges = collegesResult.success && collegesResult.data ? collegesResult.data : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="container mx-auto px-4 py-12">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-12">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Admin Dashboard
+    <div className="min-h-screen bg-[#0a0a0a] text-[#eeeeee] antialiased selection:bg-purple-500/30">
+      {/* Precision Top Border */}
+      <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+
+      <div className="container mx-auto px-6 py-12 max-w-6xl">
+        
+        {/* Navigation / Minimalist Header */}
+        <header className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+          <div className="space-y-2">
+            <h1 className="text-xs font-black tracking-[0.4em] text-purple-500 uppercase">
+              Study in Bengaluru
             </h1>
-            <p className="text-slate-400 mt-2">Manage users and system settings</p>
+            <p className="text-4xl md:text-5xl font-light tracking-tighter text-white">
+              Control <span className="font-serif italic text-slate-400">Center.</span>
+            </p>
           </div>
 
           <form action={signOut}>
             <button
               type="submit"
-              className="px-6 py-3 bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 rounded-lg text-white font-semibold hover:scale-105 transition-all duration-200"
+              className="group relative px-8 py-3 bg-white text-black rounded-full text-xs font-bold uppercase tracking-widest hover:bg-purple-500 hover:text-white transition-all duration-500 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(168,85,247,0.4)]"
             >
-              Sign Out
+              Secure Sign Out
             </button>
           </form>
+        </header>
+
+        {/* Cred-Style Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-[1px] bg-white/10 border border-white/10 rounded-3xl overflow-hidden mb-16 shadow-2xl">
+          {[
+            { label: 'Network Population', value: allUsers.length },
+            { label: 'Privileged Access', value: allUsers.filter(u => u.role === 'admin').length },
+            { label: 'Institutions', value: allColleges.length }
+          ].map((stat, i) => (
+            <div key={i} className="bg-[#0a0a0a] p-10 hover:bg-[#111] transition-colors group">
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] mb-4 group-hover:text-purple-400 transition-colors">
+                {stat.label}
+              </p>
+              <p className="text-5xl font-light tracking-tighter text-white">{stat.value}</p>
+            </div>
+          ))}
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-slate-900/90 backdrop-blur-xl rounded-xl p-6 border border-white/10">
-            <p className="text-slate-400 text-sm mb-1">Total Users</p>
-            <p className="text-3xl font-bold text-white">{allUsers.length}</p>
-          </div>
-          <div className="bg-slate-900/90 backdrop-blur-xl rounded-xl p-6 border border-white/10">
-            <p className="text-slate-400 text-sm mb-1">Admins</p>
-            <p className="text-3xl font-bold text-white">
-              {allUsers.filter(u => u.role === 'admin').length}
-            </p>
-          </div>
-          <div className="bg-slate-900/90 backdrop-blur-xl rounded-xl p-6 border border-white/10">
-            <p className="text-slate-400 text-sm mb-1">Regular Users</p>
-            <p className="text-3xl font-bold text-white">
-              {allUsers.filter(u => u.role === 'user').length}
-            </p>
-          </div>
+        {/* Management Interfaces */}
+        <div className="space-y-24">
+          <section className="relative">
+            <div className="flex items-baseline gap-4 mb-8">
+              <h2 className="text-2xl font-light tracking-tight text-white">User Management</h2>
+              <div className="h-[1px] flex-grow bg-white/5" />
+            </div>
+            <div className="bg-[#0f0f0f] border border-white/5 rounded-3xl p-2 shadow-inner group hover:border-purple-500/20 transition-all duration-700">
+              <UserManagementClient
+                initialUsers={allUsers}
+                currentUserId={user.id}
+                currentUserEmail={user.email || ''}
+                isSuperAdmin={isSuperAdmin}
+              />
+            </div>
+          </section>
+
+          <section className="relative">
+            <div className="flex items-baseline gap-4 mb-8">
+              <h2 className="text-2xl font-light tracking-tight text-white">College Portfolio</h2>
+              <div className="h-[1px] flex-grow bg-white/5" />
+            </div>
+            <div className="bg-[#0f0f0f] border border-white/5 rounded-3xl p-2 shadow-inner group hover:border-purple-500/20 transition-all duration-700">
+              <CollegeManagementClient initialColleges={allColleges} />
+            </div>
+          </section>
         </div>
 
-        {/* User Management Section */}
-        <UserManagementClient
-          initialUsers={allUsers}
-          currentUserId={user.id}
-          currentUserEmail={user.email || ''}
-          isSuperAdmin={isSuperAdmin}
-        />
-
-        {/* College Management Section */}
-        <div className="mt-8">
-          <CollegeManagementClient initialColleges={allColleges} />
-        </div>
-
-        {/* Current User Info */}
-        <div className="mt-8">
-          <div className="bg-slate-900/90 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-white/10">
-            <h2 className="text-2xl font-bold text-white mb-6">Your Account</h2>
-
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-slate-400">Email</p>
-                <p className="text-lg text-white">{user.email}</p>
+        {/* Account Meta / Detailed Footer */}
+        <footer className="mt-32 pb-12">
+          <div className="bg-gradient-to-b from-white/5 to-transparent p-12 rounded-[40px] border border-white/10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              <div className="space-y-6">
+                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Admin Identity</h3>
+                <div className="space-y-1">
+                  <p className="text-2xl font-light text-white">{user.email}</p>
+                  <p className="text-xs font-mono text-purple-500/60 uppercase tracking-widest">{user.id}</p>
+                </div>
               </div>
 
-              <div>
-                <p className="text-sm text-slate-400">User ID</p>
-                <p className="text-sm text-slate-300 font-mono break-all">{user.id}</p>
-              </div>
-
-              <div>
-                <p className="text-sm text-slate-400">Last Sign In</p>
-                <p className="text-lg text-white">
-                  {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : 'N/A'}
-                </p>
+              <div className="md:text-right space-y-6">
+                <h3 className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">System Status</h3>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-white">Encrypted Session Active</p>
+                  <p className="text-xs text-slate-500 italic">
+                    Last access: {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : 'N/A'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+          
+          <div className="mt-12 text-center">
+            <p className="text-[10px] font-bold text-white/20 uppercase tracking-[0.5em]">
+              Study in Bengaluru &copy; {new Date().getFullYear()} &bull; Excellence in Education
+            </p>
+          </div>
+        </footer>
       </div>
     </div>
   );
