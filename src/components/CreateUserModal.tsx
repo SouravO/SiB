@@ -66,49 +66,51 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess, currentUse
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/95 backdrop-blur-md">
             <div className="relative w-full max-w-md">
-                {/* Gradient border effect */}
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-75 animate-gradient-x"></div>
-
-                {/* Modal content */}
-                <div className="relative bg-slate-900 rounded-2xl p-6 shadow-2xl border border-white/10">
+                {/* Thin stark border container */}
+                <div className="relative bg-[#0A0A0A] border border-white/10 p-8 shadow-[0_0_50px_-12px_rgba(147,51,234,0.3)]">
+                    
                     {/* Header */}
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                            Create New User
-                        </h2>
+                    <div className="flex justify-between items-start mb-10">
+                        <div>
+                            <h2 className="text-3xl font-black uppercase tracking-tighter italic text-white leading-none">
+                                New Member
+                            </h2>
+                            <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-white/30 mt-2">
+                                Access Control Management
+                            </p>
+                        </div>
                         <button
                             onClick={handleClose}
                             disabled={isLoading}
-                            className="text-slate-400 hover:text-white transition"
+                            className="text-white/20 hover:text-white transition-colors"
                         >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
 
-                    {/* Success message */}
+                    {/* Success/Error status in CRED style */}
                     {success && (
-                        <div className="mb-4 p-4 bg-green-500/10 border border-green-500/50 rounded-lg">
-                            <p className="text-green-400 text-sm text-center">✓ User created successfully!</p>
+                        <div className="mb-6 p-4 bg-green-500 text-black text-xs font-black uppercase tracking-widest text-center">
+                            User Authorized Successfully
                         </div>
                     )}
 
-                    {/* Error message */}
                     {error && (
-                        <div className="mb-4 p-4 bg-red-500/10 border border-red-500/50 rounded-lg">
-                            <p className="text-red-400 text-sm text-center">{error}</p>
+                        <div className="mb-6 p-4 border border-red-500/50 text-red-500 text-xs font-bold uppercase tracking-widest text-center">
+                            {error}
                         </div>
                     )}
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Email */}
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
-                                Email Address *
+                        <div className="group">
+                            <label htmlFor="email" className="block text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-2 group-focus-within:text-purple-500 transition-colors">
+                                Email Identity
                             </label>
                             <input
                                 id="email"
@@ -117,15 +119,15 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess, currentUse
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                                 disabled={isLoading}
-                                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 disabled:opacity-50"
-                                placeholder="user@example.com"
+                                className="w-full px-0 py-3 bg-transparent border-b border-white/10 rounded-none text-white text-lg font-light placeholder-white/10 focus:outline-none focus:border-purple-600 transition-all duration-300 disabled:opacity-30"
+                                placeholder="name@domain.com"
                             />
                         </div>
 
                         {/* Password */}
-                        <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
-                                Password *
+                        <div className="group">
+                            <label htmlFor="password" className="block text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-2 group-focus-within:text-purple-500 transition-colors">
+                                Security Key
                             </label>
                             <input
                                 id="password"
@@ -135,16 +137,15 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess, currentUse
                                 required
                                 minLength={6}
                                 disabled={isLoading}
-                                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 disabled:opacity-50"
+                                className="w-full px-0 py-3 bg-transparent border-b border-white/10 rounded-none text-white text-lg font-light placeholder-white/10 focus:outline-none focus:border-purple-600 transition-all duration-300 disabled:opacity-30"
                                 placeholder="••••••••"
                             />
-                            <p className="mt-1 text-xs text-slate-500">Minimum 6 characters</p>
                         </div>
 
                         {/* Full Name */}
-                        <div>
-                            <label htmlFor="fullName" className="block text-sm font-medium text-slate-300 mb-2">
-                                Full Name (Optional)
+                        <div className="group">
+                            <label htmlFor="fullName" className="block text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-2 group-focus-within:text-purple-500 transition-colors">
+                                Legal Name
                             </label>
                             <input
                                 id="fullName"
@@ -152,71 +153,50 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess, currentUse
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
                                 disabled={isLoading}
-                                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 disabled:opacity-50"
-                                placeholder="John Doe"
+                                className="w-full px-0 py-3 bg-transparent border-b border-white/10 rounded-none text-white text-lg font-light placeholder-white/10 focus:outline-none focus:border-purple-600 transition-all duration-300 disabled:opacity-30"
+                                placeholder="Enter full name"
                             />
                         </div>
 
-                        {/* Role */}
-                        <div>
-                            <label htmlFor="role" className="block text-sm font-medium text-slate-300 mb-2">
-                                Role *
+                        {/* Role Select */}
+                        <div className="group">
+                            <label htmlFor="role" className="block text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-2">
+                                Privilege Level
                             </label>
                             <select
                                 id="role"
                                 value={role}
                                 onChange={(e) => setRole(e.target.value as UserRole)}
                                 disabled={isLoading}
-                                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 disabled:opacity-50"
+                                className="w-full px-0 py-3 bg-transparent border-b border-white/10 rounded-none text-white text-sm font-bold uppercase tracking-widest focus:outline-none focus:border-purple-600 transition-all appearance-none cursor-pointer"
                             >
-                                <option value="user">User</option>
-                                {isSuperAdmin && <option value="admin">Admin</option>}
+                                <option value="user" className="bg-[#0A0A0A]">Standard User</option>
+                                {isSuperAdmin && <option value="admin" className="bg-[#0A0A0A]">Administrator</option>}
                             </select>
-                            {!isSuperAdmin && (
-                                <p className="mt-1 text-xs text-slate-500">Only super admin can create admin accounts</p>
-                            )}
                         </div>
 
-                        {/* Buttons */}
-                        <div className="flex gap-3 pt-4">
+                        {/* Action Buttons */}
+                        <div className="flex flex-col gap-4 pt-6">
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full py-5 bg-white text-black text-xs font-black uppercase tracking-[0.2em] hover:bg-purple-600 hover:text-white transition-all duration-500 disabled:opacity-50 disabled:bg-white/10"
+                            >
+                                {isLoading ? 'Processing Authorization...' : 'Create Member'}
+                            </button>
+                            
                             <button
                                 type="button"
                                 onClick={handleClose}
                                 disabled={isLoading}
-                                className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg text-white font-medium hover:bg-slate-700 transition duration-200 disabled:opacity-50"
+                                className="w-full py-3 bg-transparent text-white/30 text-[10px] font-bold uppercase tracking-widest hover:text-white transition-colors disabled:opacity-0"
                             >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={isLoading}
-                                className="flex-1 px-4 py-3 bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 rounded-lg text-white font-semibold hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:hover:scale-100"
-                            >
-                                {isLoading ? (
-                                    <div className="flex items-center justify-center space-x-2">
-                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                        <span>Creating...</span>
-                                    </div>
-                                ) : (
-                                    'Create User'
-                                )}
+                                Cancel Operation
                             </button>
                         </div>
                     </form>
                 </div>
             </div>
-
-            {/* CSS for animations */}
-            <style jsx>{`
-        @keyframes gradient-x {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        .animate-gradient-x {
-          background-size: 200% 200%;
-          animation: gradient-x 3s ease infinite;
-        }
-      `}</style>
         </div>
     );
 }

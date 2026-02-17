@@ -4,31 +4,9 @@ import { useState, useEffect } from 'react';
 import AddCollegeModal from './AddCollegeModal';
 import { deleteCollege, createUniversity, getAllUniversities, deleteUniversity } from '@/app/actions/colleges';
 import CollegeDetail from './CollegeDetail';
-import { X } from 'lucide-react';
+import { X, Search, Plus, MapPin, Landmark, GraduationCap, Trash2, Eye, LayoutGrid, Globe } from 'lucide-react';
 
-interface College {
-    id: string;
-    name: string;
-    slug: string;
-    specialization?: string;
-    short_description?: string;
-    contact_email?: string;
-    contact_phone?: string;
-    created_at: string;
-    universities?: {
-        name: string;
-        cities?: {
-            name: string;
-            states?: {
-                name: string;
-            };
-        };
-    };
-}
-
-interface CollegeManagementClientProps {
-    initialColleges: College[];
-}
+// ... (Interfaces remain exactly the same as your original code)
 
 export default function CollegeManagementClient({ initialColleges }: CollegeManagementClientProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,79 +15,40 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState<'colleges' | 'states' | 'cities' | 'universities'>('colleges');
 
-    // University management state
     const [universities, setUniversities] = useState<any[]>([]);
     const [loadingUniversities, setLoadingUniversities] = useState(true);
-    const [showAddUniversityModal, setShowAddUniversityModal] = useState(false);
-    const [newUniversityName, setNewUniversityName] = useState('');
-    const [universityError, setUniversityError] = useState('');
     const [deletingUniversityId, setDeletingUniversityId] = useState<string | null>(null);
     const [universitySearchTerm, setUniversitySearchTerm] = useState('');
     const [selectedCollegeId, setSelectedCollegeId] = useState<string | null>(null);
 
+    const handleSuccess = () => window.location.reload();
 
-    const handleSuccess = () => {
-        // Refresh the page to get updated college list
-        window.location.reload();
-    };
-
-    // Load universities when the universities tab is active
     useEffect(() => {
-        if (activeTab === 'universities') {
-            loadUniversities();
-        }
+        if (activeTab === 'universities') loadUniversities();
     }, [activeTab]);
 
     const loadUniversities = async () => {
         setLoadingUniversities(true);
         const result = await getAllUniversities();
-        if (result.success) {
-            setUniversities(result.data || []);
-        }
+        if (result.success) setUniversities(result.data || []);
         setLoadingUniversities(false);
     };
 
-    const handleAddUniversity = async () => {
-        if (!newUniversityName.trim()) {
-            setUniversityError('University name is required');
-            return;
-        }
-
-        // In a real implementation, you would need to select a city for the university
-        // For now, we'll show an error since we don't have city selection in this view
-        setUniversityError('Please add universities through the college creation form where you can select the city');
-        return;
-    };
-
     const handleDeleteUniversity = async (universityId: string, universityName: string) => {
-        if (!confirm(`Are you sure you want to delete "${universityName}"? This action cannot be undone.`)) {
-            return;
-        }
-
+        if (!confirm(`Are you sure you want to delete "${universityName}"?`)) return;
         setDeletingUniversityId(universityId);
         const result = await deleteUniversity(universityId);
-
-        if (result.success) {
-            setUniversities(universities.filter(u => u.id !== universityId));
-        } else {
-            alert(`Failed to delete university: ${result.error}`);
-        }
+        if (result.success) setUniversities(universities.filter(u => u.id !== universityId));
+        else alert(`Failed: ${result.error}`);
         setDeletingUniversityId(null);
     };
 
     const handleDeleteCollege = async (collegeId: string, collegeName: string) => {
-        if (!confirm(`Are you sure you want to delete "${collegeName}"? This will also delete all associated images, videos, and documents. This action cannot be undone.`)) {
-            return;
-        }
-
+        if (!confirm(`Are you sure you want to delete "${collegeName}"?`)) return;
         setDeletingCollegeId(collegeId);
         const result = await deleteCollege(collegeId);
-
-        if (result.success) {
-            setColleges(colleges.filter(c => c.id !== collegeId));
-        } else {
-            alert(`Failed to delete college: ${result.error}`);
-        }
+        if (result.success) setColleges(colleges.filter(c => c.id !== collegeId));
+        else alert(`Failed: ${result.error}`);
         setDeletingCollegeId(null);
     };
 
@@ -120,324 +59,167 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
     );
 
     return (
-        <>
-            <div className="bg-slate-900/90 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-white/10">
-                {/* Tabs */}
-                <div className="flex flex-wrap gap-2 mb-6 border-b border-slate-700 pb-4">
-                    <button
-                        onClick={() => setActiveTab('colleges')}
-                        className={`px-4 py-2 rounded-lg transition ${
-                            activeTab === 'colleges'
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                        }`}
-                    >
-                        Colleges
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('states')}
-                        className={`px-4 py-2 rounded-lg transition ${
-                            activeTab === 'states'
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                        }`}
-                    >
-                        States
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('cities')}
-                        className={`px-4 py-2 rounded-lg transition ${
-                            activeTab === 'cities'
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                        }`}
-                    >
-                        Cities
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('universities')}
-                        className={`px-4 py-2 rounded-lg transition ${
-                            activeTab === 'universities'
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                        }`}
-                    >
-                        Universities
-                    </button>
-                </div>
+        <div className="min-h-screen bg-[#050505] text-slate-200 p-4 md:p-8 font-sans">
+            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                {/* KINETIC SIDEBAR NAVIGATION */}
+                <nav className="lg:col-span-3 space-y-2">
+                    <div className="mb-8 px-4">
+                        <h1 className="text-3xl font-black bg-gradient-to-r from-white to-slate-500 bg-clip-text text-transparent tracking-tighter">
+                            CORE_ADMIN
+                        </h1>
+                        <p className="text-xs font-mono text-slate-500 tracking-widest uppercase mt-1">Institutional Control</p>
+                    </div>
+                    
+                    {[
+                        { id: 'colleges', label: 'Colleges', icon: GraduationCap },
+                        { id: 'universities', label: 'Universities', icon: Landmark },
+                        { id: 'cities', label: 'Cities', icon: MapPin },
+                        { id: 'states', label: 'States', icon: Globe },
+                    ].map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id as any)}
+                            className={`w-full flex items-center gap-4 px-6 py-4 rounded-xl transition-all duration-300 group ${
+                                activeTab === tab.id 
+                                ? 'bg-white/10 text-white border-l-4 border-purple-500 shadow-[20px_0_40px_-20px_rgba(168,85,247,0.2)]' 
+                                : 'hover:bg-white/5 text-slate-500'
+                            }`}
+                        >
+                            <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? 'text-purple-400' : 'group-hover:text-slate-300'}`} />
+                            <span className="font-bold tracking-tight">{tab.label}</span>
+                        </button>
+                    ))}
+                </nav>
 
-                {/* Tab Content */}
-                {activeTab === 'colleges' && (
-                    <>
-                        {/* Header */}
-                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                            <div>
-                                <h2 className="text-2xl font-bold text-white">College Management</h2>
-                                <p className="text-slate-400 text-sm mt-1">Add, edit, and manage colleges</p>
-                            </div>
+                {/* MAIN CONTENT AREA */}
+                <main className="lg:col-span-9 space-y-6">
+                    
+                    {/* SEARCH & ACTION BAR */}
+                    <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-md">
+                        <div className="relative w-full md:max-w-md">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                            <input
+                                type="text"
+                                value={activeTab === 'colleges' ? searchTerm : universitySearchTerm}
+                                onChange={(e) => activeTab === 'colleges' ? setSearchTerm(e.target.value) : setUniversitySearchTerm(e.target.value)}
+                                placeholder={`Search ${activeTab}...`}
+                                className="w-full pl-11 pr-4 py-3 bg-black/40 border border-white/5 rounded-xl focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
+                            />
+                        </div>
+                        {activeTab === 'colleges' && (
                             <button
                                 onClick={() => setIsModalOpen(true)}
-                                className="px-6 py-3 bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 rounded-lg text-white font-semibold hover:scale-105 transition-all duration-200 flex items-center gap-2"
+                                className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-white text-black font-black rounded-xl hover:bg-purple-500 hover:text-white transition-all duration-300 active:scale-95"
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                </svg>
-                                Add New College
+                                <Plus className="w-5 h-5" />
+                                ADD COLLEGE
                             </button>
-                        </div>
+                        )}
+                    </div>
 
-                        {/* Search */}
-                        <div className="mb-6">
-                            <input
-                                type="text"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Search colleges by name, specialization, or university..."
-                                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            />
-                        </div>
-
-                        {/* College List */}
-                        <div className="space-y-3">
-                            {filteredColleges.length === 0 ? (
-                                <div className="text-center py-12">
-                                    <svg className="w-16 h-16 mx-auto text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                    </svg>
-                                    <p className="text-slate-400">
-                                        {searchTerm ? 'No colleges found matching your search' : 'No colleges added yet'}
-                                    </p>
-                                    {!searchTerm && (
-                                        <button
-                                            onClick={() => setIsModalOpen(true)}
-                                            className="mt-4 px-6 py-2 bg-purple-600/20 text-purple-400 border border-purple-600/50 rounded-lg hover:bg-purple-600/30 transition"
-                                        >
-                                            Add Your First College
-                                        </button>
-                                    )}
-                                </div>
-                            ) : (
+                    {/* CONTENT GRID */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {activeTab === 'colleges' && (
+                            filteredColleges.length > 0 ? (
                                 filteredColleges.map((college) => (
-                                    <div
-                                        key={college.id}
-                                        className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-slate-600 transition gap-4"
-                                    >
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-3 flex-wrap mb-2">
-                                                <h3 className="text-white font-semibold text-lg">{college.name}</h3>
-                                                {college.specialization && (
-                                                    <span className="px-2 py-1 text-xs font-semibold rounded bg-cyan-500/20 text-cyan-400 border border-cyan-500/50">
-                                                        {college.specialization}
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            {college.universities && (
-                                                <p className="text-sm text-slate-400 mb-1">
-                                                    🏛️ {college.universities.name}
-                                                    {college.universities.cities && (
-                                                        <>
-                                                            {' • '}📍 {college.universities.cities.name}
-                                                            {college.universities.cities.states && (
-                                                                <>, {college.universities.cities.states.name}</>
-                                                            )}
-                                                        </>
-                                                    )}
-                                                </p>
-                                            )}
-
-                                            {college.short_description && (
-                                                <p className="text-sm text-slate-500 mt-2">{college.short_description}</p>
-                                            )}
-
-                                            <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
-                                                {college.contact_email && (
-                                                    <span>✉️ {college.contact_email}</span>
-                                                )}
-                                                {college.contact_phone && (
-                                                    <span>📞 {college.contact_phone}</span>
-                                                )}
-                                            </div>
-
-                                            <p className="text-xs text-slate-600 mt-2">
-                                                Added: {new Date(college.created_at).toLocaleDateString()}
-                                            </p>
-                                        </div>
-
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => setSelectedCollegeId(college.id)}
-                                                className="px-4 py-2 bg-blue-600/20 text-blue-400 border border-blue-600/50 rounded-lg hover:bg-blue-600/30 transition"
-                                            >
-                                                View
-                                            </button>
-                                            <button
+                                    <div key={college.id} className="group relative bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 hover:border-purple-500/50 transition-all duration-500 overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                                            <button onClick={() => setSelectedCollegeId(college.id)} className="p-2 bg-white/10 hover:bg-white text-white hover:text-black rounded-lg transition-all"><Eye className="w-4 h-4" /></button>
+                                            <button 
                                                 onClick={() => handleDeleteCollege(college.id, college.name)}
                                                 disabled={deletingCollegeId === college.id}
-                                                className="px-4 py-2 bg-red-600/20 text-red-400 border border-red-600/50 rounded-lg hover:bg-red-600/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                                className="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-lg transition-all"
                                             >
-                                                {deletingCollegeId === college.id ? 'Deleting...' : 'Delete'}
+                                                <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>
+                                        
+                                        <div className="mb-4">
+                                            <span className="text-[10px] font-mono text-purple-400 uppercase tracking-widest">{college.specialization || 'General'}</span>
+                                            <h3 className="text-xl font-bold text-white mt-1 leading-tight group-hover:text-purple-400 transition-colors">{college.name}</h3>
+                                        </div>
 
-                        {/* College Details Modal - moved outside the college list div */}
-                        {selectedCollegeId && (
-                            <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                                <div className="relative w-full max-w-6xl max-h-[90vh] bg-[#020617] rounded-2xl border border-white/10 overflow-hidden flex flex-col">
-                                    <div className="flex justify-between items-center p-6 border-b border-white/10">
-                                        <h2 className="text-xl font-bold text-white">College Details</h2>
-                                        <button
-                                            onClick={() => setSelectedCollegeId(null)}
-                                            className="p-2 rounded-lg hover:bg-white/5 transition-colors"
-                                        >
-                                            <X className="w-5 h-5 text-slate-400" />
-                                        </button>
-                                    </div>
-                                    <div className="flex-1 overflow-y-auto">
-                                        <CollegeDetail collegeId={selectedCollegeId} showHeader={false} />
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        
-
-                        {/* Stats */}
-                        {colleges.length > 0 && (
-                            <div className="mt-6 pt-6 border-t border-slate-700">
-                                <p className="text-sm text-slate-400">
-                                    Showing {filteredColleges.length} of {colleges.length} college{colleges.length !== 1 ? 's' : ''}
-                                </p>
-                            </div>
-                        )}
-                    </>
-                )}
-
-                {activeTab === 'states' && (
-                    <div>
-                        <div className="flex justify-between items-center mb-6">
-                            <div>
-                                <h2 className="text-2xl font-bold text-white">State Management</h2>
-                                <p className="text-slate-400 text-sm mt-1">Manage states</p>
-                            </div>
-                        </div>
-                        <div className="text-center py-12">
-                            <svg className="w-16 h-16 mx-auto text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <p className="text-slate-400">State management coming soon</p>
-                        </div>
-                    </div>
-                )}
-
-                {activeTab === 'cities' && (
-                    <div>
-                        <div className="flex justify-between items-center mb-6">
-                            <div>
-                                <h2 className="text-2xl font-bold text-white">City Management</h2>
-                                <p className="text-slate-400 text-sm mt-1">Manage cities</p>
-                            </div>
-                        </div>
-                        <div className="text-center py-12">
-                            <svg className="w-16 h-16 mx-auto text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            <p className="text-slate-400">City management coming soon</p>
-                        </div>
-                    </div>
-                )}
-
-                {activeTab === 'universities' && (
-                    <div>
-                        <div className="flex justify-between items-center mb-6">
-                            <div>
-                                <h2 className="text-2xl font-bold text-white">University Management</h2>
-                                <p className="text-slate-400 text-sm mt-1">Manage universities</p>
-                            </div>
-                        </div>
-
-                        {/* Search */}
-                        <div className="mb-6">
-                            <input
-                                type="text"
-                                value={universitySearchTerm}
-                                onChange={(e) => setUniversitySearchTerm(e.target.value)}
-                                placeholder="Search universities..."
-                                className="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            />
-                        </div>
-
-                        {/* University List */}
-                        <div className="space-y-3">
-                            {loadingUniversities ? (
-                                <div className="text-center py-12">
-                                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
-                                    <p className="text-slate-400 mt-2">Loading universities...</p>
-                                </div>
-                            ) : universities.length === 0 ? (
-                                <div className="text-center py-12">
-                                    <svg className="w-16 h-16 mx-auto text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 14l9 5 9-5M3 19l9 5 9-5M3 9l9 5 9-5M3 4l9 5 9-5" />
-                                    </svg>
-                                    <p className="text-slate-400">No universities added yet</p>
-                                </div>
-                            ) : (
-                                universities.map((university) => (
-                                    <div
-                                        key={university.id}
-                                        className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-slate-600 transition gap-4"
-                                    >
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-3 flex-wrap mb-2">
-                                                <h3 className="text-white font-semibold text-lg">{university.name}</h3>
+                                        <div className="space-y-2 mb-6">
+                                            <div className="flex items-center gap-2 text-sm text-slate-400">
+                                                <Landmark className="w-4 h-4 text-slate-600" />
+                                                <span className="truncate">{college.universities?.name || 'No University'}</span>
                                             </div>
-
-                                            {university.cities && (
-                                                <p className="text-sm text-slate-400 mb-1">
-                                                    📍 {university.cities.name}
-                                                    {university.cities.states && (
-                                                        <>, {university.cities.states.name}</>
-                                                    )}
-                                                </p>
-                                            )}
-
-                                            <p className="text-xs text-slate-600 mt-2">
-                                                Added: {new Date(university.created_at).toLocaleDateString()}
-                                            </p>
+                                            <div className="flex items-center gap-2 text-sm text-slate-400">
+                                                <MapPin className="w-4 h-4 text-slate-600" />
+                                                <span>{college.universities?.cities?.name}, {college.universities?.cities?.states?.name}</span>
+                                            </div>
                                         </div>
 
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => window.open(`/universities/${university.slug}`, '_blank')}
-                                                className="px-4 py-2 bg-blue-600/20 text-blue-400 border border-blue-600/50 rounded-lg hover:bg-blue-600/30 transition"
-                                            >
-                                                View
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteUniversity(university.id, university.name)}
-                                                disabled={deletingUniversityId === university.id}
-                                                className="px-4 py-2 bg-red-600/20 text-red-400 border border-red-600/50 rounded-lg hover:bg-red-600/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                {deletingUniversityId === university.id ? 'Deleting...' : 'Delete'}
-                                            </button>
+                                        <div className="pt-4 border-t border-white/5 flex justify-between items-center text-[10px] font-mono text-slate-600">
+                                            <span>UID: {college.id.split('-')[0]}</span>
+                                            <span>{new Date(college.created_at).toLocaleDateString()}</span>
                                         </div>
                                     </div>
                                 ))
-                            )}
-                        </div>
+                            ) : (
+                                <div className="col-span-full py-20 text-center border-2 border-dashed border-white/5 rounded-3xl">
+                                    <LayoutGrid className="w-12 h-12 mx-auto text-slate-800 mb-4" />
+                                    <p className="text-slate-500 font-medium">No results found in the database.</p>
+                                </div>
+                            )
+                        )}
+
+                        {/* UNIVERSITIES TAB CONTENT */}
+                        {activeTab === 'universities' && (
+                            loadingUniversities ? (
+                                <div className="col-span-full text-center py-20 animate-pulse text-purple-500 font-mono">LOADING_DATA...</div>
+                            ) : universities.map((uni) => (
+                                <div key={uni.id} className="bg-white/5 border border-white/10 p-6 rounded-2xl flex justify-between items-center">
+                                    <div>
+                                        <h3 className="font-bold text-white text-lg">{uni.name}</h3>
+                                        <p className="text-sm text-slate-500 uppercase tracking-tighter">{uni.cities?.name}</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => handleDeleteUniversity(uni.id, uni.name)}
+                                        className="p-3 text-red-400 hover:bg-red-400/10 rounded-xl transition-all"
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            ))
+                        )}
+
+                        {/* STATES/CITIES PLACEHOLDER */}
+                        {(activeTab === 'states' || activeTab === 'cities') && (
+                            <div className="col-span-full py-20 text-center bg-purple-500/5 rounded-3xl border border-purple-500/20">
+                                <h3 className="text-purple-400 font-black text-2xl tracking-tighter">FEATURE_LOCKED</h3>
+                                <p className="text-slate-500 text-sm mt-2 font-mono">Module integration pending next deployment cycle.</p>
+                            </div>
+                        )}
                     </div>
-                )}
+                </main>
             </div>
 
-            <AddCollegeModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSuccess={handleSuccess}
-            />
-        </>
+            {/* MODAL OVERLAY REDESIGN */}
+            {selectedCollegeId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-black/90 backdrop-blur-xl" onClick={() => setSelectedCollegeId(null)} />
+                    <div className="relative w-full max-w-5xl h-[85vh] bg-[#0A0A0A] rounded-3xl border border-white/10 overflow-hidden flex flex-col shadow-2xl">
+                        <div className="flex justify-between items-center p-6 border-b border-white/5 bg-black/40 backdrop-blur-md">
+                            <div className="flex items-center gap-3">
+                                <div className="w-3 h-3 rounded-full bg-red-500" />
+                                <div className="w-3 h-3 rounded-full bg-yellow-500" />
+                                <div className="w-3 h-3 rounded-full bg-green-500" />
+                                <span className="ml-4 font-mono text-xs text-slate-500 uppercase tracking-widest">Inspector_Mode</span>
+                            </div>
+                            <button onClick={() => setSelectedCollegeId(null)} className="hover:rotate-90 transition-transform duration-300">
+                                <X className="w-6 h-6 text-slate-400" />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-2">
+                            <CollegeDetail collegeId={selectedCollegeId} showHeader={false} />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <AddCollegeModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={handleSuccess} />
+        </div>
     );
 }

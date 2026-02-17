@@ -8,7 +8,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
@@ -31,14 +30,12 @@ export default function LoginPage() {
       }
 
       if (data.user) {
-        // Get user's role to determine redirect
         const { data: profile } = await supabase
           .from('user_profiles')
           .select('role')
           .eq('id', data.user.id)
           .single();
 
-        // Redirect based on role
         if (profile?.role === 'admin' || !profile) {
           router.push('/');
         } else {
@@ -47,162 +44,125 @@ export default function LoginPage() {
         router.refresh();
       }
     } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
+      setError('Internal security error.');
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      {/* Animated gradient orbs */}
-      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-      <div className="absolute top-0 -right-4 w-72 h-72 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
-
-      {/* Main container */}
-      <div className="relative flex items-center justify-center min-h-screen px-4 py-12">
-        {/* Login card */}
-        <div className="w-full max-w-md">
-          {/* Glass card with border gradient */}
-          <div className="relative group">
-            {/* Gradient border effect */}
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-gradient-x"></div>
-
-            {/* Card content */}
-            <div className="relative bg-slate-900/90 backdrop-blur-xl rounded-2xl p-8 shadow-2xl border border-white/10">
-              {/* Logo/Title */}
-              <div className="text-center mb-8">
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2 animate-gradient-x">
-                  Welcome Back
-                </h1>
-                <p className="text-slate-400 text-sm">Sign in to continue to your account</p>
-              </div>
-
-              {/* Error message */}
-              {error && (
-                <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg">
-                  <p className="text-red-400 text-sm text-center">{error}</p>
-                </div>
-              )}
-
-              {/* Login form */}
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Email input */}
-                <div className="space-y-2">
-                  <label htmlFor="email" className="block text-sm font-medium text-slate-300">
-                    Email Address
-                  </label>
-                  <div className="relative group">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-lg blur opacity-0 group-hover:opacity-30 transition duration-300"></div>
-                    <input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="relative w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
-                      placeholder="you@example.com"
-                    />
-                  </div>
-                </div>
-
-                {/* Password input */}
-                <div className="space-y-2">
-                  <label htmlFor="password" className="block text-sm font-medium text-slate-300">
-                    Password
-                  </label>
-                  <div className="relative group">
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg blur opacity-0 group-hover:opacity-30 transition duration-300"></div>
-                    <input
-                      id="password"
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="relative w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200"
-                      placeholder="••••••••"
-                    />
-                  </div>
-                </div>
-
-                {/* Remember me & Forgot password */}
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center space-x-2 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-purple-500 focus:ring-purple-500 focus:ring-offset-slate-900 cursor-pointer"
-                    />
-                    <span className="text-sm text-slate-400 group-hover:text-slate-300 transition">Remember me</span>
-                  </label>
-                  <button
-                    type="button"
-                    className="text-sm text-purple-400 hover:text-purple-300 transition"
-                  >
-                    Forgot password?
-                  </button>
-                </div>
-
-                {/* Submit button */}
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="relative w-full group overflow-hidden"
-                >
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-200 animate-gradient-x"></div>
-                  <div className="relative flex items-center justify-center px-6 py-3 bg-gradient-to-r from-cyan-600 via-purple-600 to-pink-600 rounded-lg text-white font-semibold transition-all duration-200 group-hover:scale-[1.02]">
-                    {isLoading ? (
-                      <div className="flex items-center space-x-2">
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                        <span>Signing in...</span>
-                      </div>
-                    ) : (
-                      'Sign In'
-                    )}
-                  </div>
-                </button>
-              </form>
-
-              {/* Sign up link */}
-              <p className="mt-6 text-center text-sm text-slate-400">
-                Don't have an account?{' '}
-                <button
-                  type="button"
-                  className="text-purple-400 hover:text-purple-300 font-medium transition"
-                >
-                  Sign up
-                </button>
-              </p>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#0a0118] text-white flex flex-col font-sans selection:bg-white selection:text-purple-900">
+      {/* Top Progress Bar */}
+      <div className="h-[2px] w-full bg-purple-950 overflow-hidden">
+        <div className={`h-full bg-white transition-all duration-1000 ease-out ${isLoading ? 'w-full' : 'w-0'}`} />
       </div>
 
-      {/* CSS for animations */}
-      <style jsx>{`
-        @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
+      <main className="flex-1 flex flex-col items-center justify-center px-8 max-w-lg mx-auto w-full">
+        {/* Logo/Icon Area */}
+        <div className="w-full mb-16">
+          <div className="relative h-14 w-14 mb-10 group">
+             {/* Subtle Glow */}
+             <div className="absolute inset-0 bg-purple-500 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+             <div className="relative h-full w-full border border-purple-400/30 flex items-center justify-center bg-purple-900/20 backdrop-blur-sm">
+                <div className="h-4 w-4 bg-white"></div>
+             </div>
+          </div>
+          
+          <h1 className="text-5xl font-extralight tracking-tight leading-tight">
+            access <br />
+            <span className="font-semibold text-white">privileges.</span>
+          </h1>
+        </div>
+
+        {/* Error Notification */}
+        {error && (
+          <div className="w-full mb-8 py-3 text-purple-300 text-xs font-mono border-l-2 border-purple-500 pl-4 bg-purple-500/5">
+             {error.toUpperCase()}
+          </div>
+        )}
+
+        {/* Credentials Form */}
+        <form onSubmit={handleSubmit} className="w-full space-y-12">
+          <div className="space-y-10">
+            {/* Input Email */}
+            <div className="group border-b border-purple-900/50 focus-within:border-white transition-all duration-500">
+              <label className="block text-[10px] uppercase tracking-[0.3em] text-purple-400/60 mb-1">
+                Identity / Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="off"
+                placeholder="yourname@domain.com"
+                className="w-full bg-transparent py-4 text-xl outline-none placeholder:text-purple-900 font-light"
+              />
+            </div>
+
+            {/* Input Password */}
+            <div className="group border-b border-purple-900/50 focus-within:border-white transition-all duration-500">
+              <label className="block text-[10px] uppercase tracking-[0.3em] text-purple-400/60 mb-1">
+                Security Key
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="••••••••"
+                className="w-full bg-transparent py-4 text-xl outline-none placeholder:text-purple-900 font-light tracking-widest"
+              />
+            </div>
+          </div>
+
+          <div className="pt-6">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-white text-purple-950 py-5 text-xs font-bold uppercase tracking-[0.25em] hover:bg-purple-50 transition-all active:scale-[0.99] disabled:bg-purple-900/20 disabled:text-purple-700 overflow-hidden relative"
+            >
+              <span className={isLoading ? 'opacity-0' : 'opacity-100'}>
+                Claim Access
+              </span>
+              
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                   <span className="w-1.5 h-1.5 bg-purple-950 rounded-full animate-ping"></span>
+                </div>
+              )}
+            </button>
+          </div>
+        </form>
+
+        {/* Footer Actions */}
+        <footer className="mt-16 w-full flex flex-col gap-4">
+            <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-purple-900/50 to-transparent"></div>
+            <div className="flex justify-between items-center text-[9px] font-mono text-purple-500/50 uppercase tracking-widest">
+                <button type="button" className="hover:text-white transition decoration-purple-500 underline-offset-4 hover:underline">Reset Key</button>
+                <button type="button" className="hover:text-white transition decoration-purple-500 underline-offset-4 hover:underline">New Application</button>
+            </div>
+        </footer>
+      </main>
+
+      {/* Decorative Branding */}
+      <div className="fixed bottom-[-10%] left-[-5%] opacity-[0.03] pointer-events-none select-none">
+        <h2 className="text-[40rem] font-bold text-white">P</h2>
+      </div>
+
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;600;800&family=JetBrains+Mono&display=swap');
+        
+        body {
+          background-color: #0a0118;
+          font-family: 'Plus Jakarta Sans', sans-serif;
         }
-        @keyframes gradient-x {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-        .animate-gradient-x {
-          background-size: 200% 200%;
-          animation: gradient-x 3s ease infinite;
+
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus {
+          -webkit-text-fill-color: white;
+          -webkit-box-shadow: 0 0 0px 1000px #0a0118 inset;
+          transition: background-color 5000s ease-in-out 0s;
         }
       `}</style>
     </div>
