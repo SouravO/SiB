@@ -55,20 +55,18 @@ export default function LoginPage() {
       <div className="h-[2px] w-full bg-purple-950 overflow-hidden">
         <div className={`h-full bg-white transition-all duration-1000 ease-out ${isLoading ? 'w-full' : 'w-0'}`} />
       </div>
+      <div className='bg-white/45 w-1/12 rounded-2xl '>
+      <img src="/assets/logo.png" alt="Logo" className='w-full h-full object-contain' />
+        </div>
 
       <main className="flex-1 flex flex-col items-center justify-center px-8 max-w-lg mx-auto w-full">
+        
         {/* Logo/Icon Area */}
         <div className="w-full mb-16">
-          <div className="relative h-14 w-14 mb-10 group">
-             {/* Subtle Glow */}
-             <div className="absolute inset-0 bg-purple-500 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
-             <div className="relative h-full w-full border border-purple-400/30 flex items-center justify-center bg-purple-900/20 backdrop-blur-sm">
-                <div className="h-4 w-4 bg-white"></div>
-             </div>
-          </div>
+          
           
           <h1 className="text-5xl font-extralight tracking-tight leading-tight">
-            access <br />
+            Access <br />
             <span className="font-semibold text-white">privileges.</span>
           </h1>
         </div>

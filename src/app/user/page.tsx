@@ -38,6 +38,13 @@ export default function UserDashboard() {
     const [loadingUniversities, setLoadingUniversities] = useState(false);
     const [loadingColleges, setLoadingColleges] = useState(false);
     const [selectedCollegeId, setSelectedCollegeId] = useState<string | null>(null);
+    const [citySearchQuery, setCitySearchQuery] = useState('');
+    const [showCityList, setShowCityList] = useState(false);
+    const [stateSearchQuery, setStateSearchQuery] = useState('');
+    const [showStateList, setShowStateList] = useState(false);
+    const [universitySearchQuery, setUniversitySearchQuery] = useState('');
+    const [showUniversityList, setShowUniversityList] = useState(false);
+    const [collegeSearchQuery, setCollegeSearchQuery] = useState('');
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -66,6 +73,9 @@ export default function UserDashboard() {
         setSelectedCity('');
         setSelectedUniversity('');
         setCities([]);
+        setCitySearchQuery('');
+        setShowCityList(false);
+        setShowStateList(false);
         if (stateId) {
             setLoadingCities(true);
             const citiesResult = await getCitiesByState(stateId);
@@ -76,7 +86,11 @@ export default function UserDashboard() {
 
     const handleCityChange = async (cityId: string) => {
         setSelectedCity(cityId);
+        setCitySearchQuery('');
         setSelectedUniversity('');
+        setUniversitySearchQuery('');
+        setShowUniversityList(false);
+        setShowCityList(false);
         if (cityId) {
             setLoadingUniversities(true);
             const universitiesResult = await getUniversitiesByCity(cityId);
@@ -84,6 +98,19 @@ export default function UserDashboard() {
             setLoadingUniversities(false);
         }
     };
+
+    // Filter states, cities, universities based on search query
+    const filteredStates = states.filter(state =>
+        state.name.toLowerCase().includes(stateSearchQuery.toLowerCase())
+    );
+
+    const filteredCities = cities.filter(city =>
+        city.name.toLowerCase().includes(citySearchQuery.toLowerCase())
+    );
+
+    const filteredUniversities = universities.filter(university =>
+        university.name.toLowerCase().includes(universitySearchQuery.toLowerCase())
+    );
 
     const handleUniversityChange = async (universityId: string) => {
         setSelectedUniversity(universityId);
@@ -100,6 +127,13 @@ export default function UserDashboard() {
         }
     };
 
+    // Filter colleges based on search query
+    const filteredColleges = colleges.filter(college =>
+        college.name.toLowerCase().includes(collegeSearchQuery.toLowerCase()) ||
+        (college.specialization && college.specialization.toLowerCase().includes(collegeSearchQuery.toLowerCase())) ||
+        (college.short_description && college.short_description.toLowerCase().includes(collegeSearchQuery.toLowerCase()))
+    );
+
     if (loading) return (
         <div className="min-h-screen bg-black flex flex-col items-center justify-center">
             <div className="h-[2px] w-64 bg-purple-950 overflow-hidden">
@@ -112,9 +146,9 @@ export default function UserDashboard() {
         <div className="min-h-screen bg-black text-white flex font-sans">
             {/* Sidebar - Fixed Width */}
             <aside className="w-24 lg:w-72 border-r border-white/10 bg-[#080808] flex flex-col py-8 hidden md:flex">
-                <div className="px-8 mb-12">
-                    <div className="h-12 w-12 bg-white flex items-center justify-center">
-                        <div className="w-5 h-5 bg-black rotate-45"></div>
+                <div className="px-4 mb-12 ">
+                    <div className="h-27 w-full bg-white flex items-center justify-center">
+                       <img src="/assets/logo.png" alt="logo" className='w-full h-full object-contain scale-280'/>
                     </div>
                 </div>
 
@@ -147,24 +181,74 @@ export default function UserDashboard() {
                             <Filter size={14} className="text-purple-500" />
                             <h2 className="text-[10px] font-bold uppercase tracking-[0.4em] text-white">Refine Discovery</h2>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
                             {/* State Selector */}
                             <div className="relative group">
                                 <div className={`absolute inset-0 bg-white/5 transition-opacity ${selectedState ? 'opacity-100' : 'opacity-0'}`}></div>
                                 <div className="relative border border-white/20 group-focus-within:border-white p-4 transition-all">
                                     <label className="block text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-2">01. Select State</label>
-                                    <select 
-                                        value={selectedState}
-                                        onChange={(e) => handleStateChange(e.target.value)}
-                                        className="w-full bg-transparent text-white text-base font-medium outline-none cursor-pointer appearance-none"
-                                    >
-                                        <option className="bg-zinc-900" value="">All States</option>
-                                        {states.map(s => <option className="bg-zinc-900" key={s.id} value={s.id}>{s.name}</option>)}
-                                    </select>
-                                    <div className="absolute right-4 bottom-5 pointer-events-none">
-                                        <MapPin size={14} className="text-zinc-600" />
+
+                                    {/* Search Input */}
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={stateSearchQuery}
+                                            onChange={(e) => {
+                                                setStateSearchQuery(e.target.value);
+                                                setShowStateList(true);
+                                            }}
+                                            onFocus={() => setShowStateList(true)}
+                                            placeholder="Search state..."
+                                            className="w-full bg-zinc-900/50 border border-white/10 rounded px-3 py-1.5 text-white text-xs outline-none focus:border-white/30 placeholder:text-zinc-700"
+                                        />
+                                        <Search size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-600" />
                                     </div>
+
+                                    {/* Selected State Display */}
+                                    {selectedState && !showStateList && (
+                                        <div className="mt-2 flex items-center justify-between bg-white/10 rounded px-2 py-1.5">
+                                            <span className="text-white text-sm font-medium">
+                                                {states.find(s => s.id === selectedState)?.name}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedState('');
+                                                    setStateSearchQuery('');
+                                                    handleStateChange('');
+                                                }}
+                                                className="text-zinc-500 hover:text-white transition-colors"
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* State List - Only shown when typing */}
+                                    {showStateList && (
+                                        <div className="mt-2 max-h-32 overflow-y-auto space-y-1">
+                                            {filteredStates.length > 0 ? (
+                                                filteredStates.map(s => (
+                                                    <button
+                                                        key={s.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            handleStateChange(s.id);
+                                                            setShowStateList(false);
+                                                        }}
+                                                        className={`w-full text-left px-2 py-1.5 text-sm rounded transition-colors ${selectedState === s.id ? 'bg-white/20 text-white' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+                                                    >
+                                                        {s.name}
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <div className="px-2 py-3 text-center text-zinc-600 text-xs">
+                                                    No states found
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -173,18 +257,67 @@ export default function UserDashboard() {
                                 <div className={`absolute inset-0 bg-white/5 transition-opacity ${selectedCity ? 'opacity-100' : 'opacity-0'}`}></div>
                                 <div className={`relative border p-4 transition-all ${!selectedState ? 'border-white/5 opacity-30' : 'border-white/20 group-focus-within:border-white'}`}>
                                     <label className="block text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-2">02. Select City</label>
-                                    <select 
-                                        value={selectedCity}
-                                        onChange={(e) => handleCityChange(e.target.value)}
-                                        disabled={!selectedState}
-                                        className="w-full bg-transparent text-white text-base font-medium outline-none cursor-pointer appearance-none disabled:cursor-not-allowed"
-                                    >
-                                        <option className="bg-zinc-900" value="">{loadingCities ? 'Loading...' : 'Choose City'}</option>
-                                        {cities.map(c => <option className="bg-zinc-900" key={c.id} value={c.id}>{c.name}</option>)}
-                                    </select>
-                                    <div className="absolute right-4 bottom-5 pointer-events-none">
-                                        <Search size={14} className="text-zinc-600" />
+
+                                    {/* Search Input */}
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={citySearchQuery}
+                                            onChange={(e) => {
+                                                setCitySearchQuery(e.target.value);
+                                                setShowCityList(true);
+                                            }}
+                                            onFocus={() => setShowCityList(true)}
+                                            disabled={!selectedState}
+                                            placeholder="Search city..."
+                                            className="w-full bg-zinc-900/50 border border-white/10 rounded px-3 py-1.5 text-white text-xs outline-none focus:border-white/30 disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-zinc-700"
+                                        />
+                                        <Search size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-600" />
                                     </div>
+
+                                    {/* Selected City Display */}
+                                    {selectedCity && !showCityList && (
+                                        <div className="mt-2 flex items-center justify-between bg-white/10 rounded px-2 py-1.5">
+                                            <span className="text-white text-sm font-medium">
+                                                {cities.find(c => c.id === selectedCity)?.name}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedCity('');
+                                                    setCitySearchQuery('');
+                                                }}
+                                                className="text-zinc-500 hover:text-white transition-colors"
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* City List - Only shown when typing */}
+                                    {showCityList && (
+                                        <div className="mt-2 max-h-32 overflow-y-auto space-y-1">
+                                            {filteredCities.length > 0 ? (
+                                                filteredCities.map(c => (
+                                                    <button
+                                                        key={c.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            handleCityChange(c.id);
+                                                            setShowCityList(false);
+                                                        }}
+                                                        className={`w-full text-left px-2 py-1.5 text-sm rounded transition-colors ${selectedCity === c.id ? 'bg-white/20 text-white' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+                                                    >
+                                                        {c.name}
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <div className="px-2 py-3 text-center text-zinc-600 text-xs">
+                                                    {loadingCities ? 'Loading cities...' : 'No cities found'}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
@@ -193,18 +326,67 @@ export default function UserDashboard() {
                                 <div className={`absolute inset-0 bg-purple-500/5 transition-opacity ${selectedUniversity ? 'opacity-100' : 'opacity-0'}`}></div>
                                 <div className={`relative border p-4 transition-all ${!selectedCity ? 'border-white/5 opacity-30' : 'border-purple-500/40 group-focus-within:border-purple-500'}`}>
                                     <label className="block text-[9px] font-bold text-purple-400 uppercase tracking-widest mb-2">03. University Board</label>
-                                    <select 
-                                        value={selectedUniversity}
-                                        onChange={(e) => handleUniversityChange(e.target.value)}
-                                        disabled={!selectedCity}
-                                        className="w-full bg-transparent text-white text-base font-medium outline-none cursor-pointer appearance-none"
-                                    >
-                                        <option className="bg-zinc-900" value="">{loadingUniversities ? 'Consulting...' : 'Select Board'}</option>
-                                        {universities.map(u => <option className="bg-zinc-900" key={u.id} value={u.id}>{u.name}</option>)}
-                                    </select>
-                                    <div className="absolute right-4 bottom-5 pointer-events-none">
-                                        <School size={14} className="text-purple-500" />
+
+                                    {/* Search Input */}
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={universitySearchQuery}
+                                            onChange={(e) => {
+                                                setUniversitySearchQuery(e.target.value);
+                                                setShowUniversityList(true);
+                                            }}
+                                            onFocus={() => setShowUniversityList(true)}
+                                            disabled={!selectedCity}
+                                            placeholder="Search university..."
+                                            className="w-full bg-zinc-900/50 border border-white/10 rounded px-3 py-1.5 text-white text-xs outline-none focus:border-purple-500/30 disabled:opacity-50 disabled:cursor-not-allowed placeholder:text-zinc-700"
+                                        />
+                                        <Search size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-600" />
                                     </div>
+
+                                    {/* Selected University Display */}
+                                    {selectedUniversity && !showUniversityList && (
+                                        <div className="mt-2 flex items-center justify-between bg-purple-500/20 border border-purple-500/30 rounded px-2 py-1.5">
+                                            <span className="text-white text-sm font-medium">
+                                                {universities.find(u => u.id === selectedUniversity)?.name}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedUniversity('');
+                                                    setUniversitySearchQuery('');
+                                                }}
+                                                className="text-zinc-500 hover:text-white transition-colors"
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* University List - Only shown when typing */}
+                                    {showUniversityList && (
+                                        <div className="mt-2 max-h-32 overflow-y-auto space-y-1">
+                                            {filteredUniversities.length > 0 ? (
+                                                filteredUniversities.map(u => (
+                                                    <button
+                                                        key={u.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            handleUniversityChange(u.id);
+                                                            setShowUniversityList(false);
+                                                        }}
+                                                        className={`w-full text-left px-2 py-1.5 text-sm rounded transition-colors ${selectedUniversity === u.id ? 'bg-purple-500/30 text-white' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+                                                    >
+                                                        {u.name}
+                                                    </button>
+                                                ))
+                                            ) : (
+                                                <div className="px-2 py-3 text-center text-zinc-600 text-xs">
+                                                    {loadingUniversities ? 'Loading universities...' : 'No universities found'}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -214,13 +396,35 @@ export default function UserDashboard() {
                 {/* LISTING SECTION */}
                 <section className="flex-1 overflow-y-auto p-8 lg:p-12 scroll-smooth">
                     <div className="max-w-7xl mx-auto">
-                        <div className="flex items-end justify-between mb-10">
+                        <div className="flex items-end justify-between mb-6">
                             <div>
                                 <h1 className="text-3xl font-light tracking-tighter text-white mb-2">The Collection</h1>
                                 <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em] flex items-center gap-2">
                                     <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></span>
-                                    {colleges.length} Verified Institutions
+                                    {filteredColleges.length} Verified Institutions
                                 </p>
+                            </div>
+                        </div>
+
+                        {/* Common Search Bar */}
+                        <div className="mb-8">
+                            <div className="relative max-w-2xl">
+                                <input
+                                    type="text"
+                                    value={collegeSearchQuery}
+                                    onChange={(e) => setCollegeSearchQuery(e.target.value)}
+                                    placeholder="Search colleges by name, specialization, or description..."
+                                    className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-4 py-3 pl-11 text-white text-sm outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 placeholder:text-zinc-600 transition-all"
+                                />
+                                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+                                {collegeSearchQuery && (
+                                    <button
+                                        onClick={() => setCollegeSearchQuery('')}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                )}
                             </div>
                         </div>
 
@@ -229,9 +433,9 @@ export default function UserDashboard() {
                                 <Loader2 className="w-8 h-8 text-white animate-spin" />
                                 <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">Processing Index</p>
                             </div>
-                        ) : colleges.length > 0 ? (
+                        ) : filteredColleges.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-20">
-                                {colleges.map((college) => (
+                                {filteredColleges.map((college) => (
                                     <div
                                         key={college.id}
                                         onClick={() => setSelectedCollegeId(college.id)}
@@ -284,10 +488,21 @@ export default function UserDashboard() {
                         ) : (
                             <div className="h-[50vh] flex flex-col items-center justify-center text-center">
                                 <div className="w-20 h-20 border border-white/5 flex items-center justify-center mb-8">
-                                    <Search className="text-zinc-800" size={30} />
+                                    {collegeSearchQuery ? <X className="text-zinc-800" size={30} /> : <Search className="text-zinc-800" size={30} />}
                                 </div>
-                                <h3 className="text-sm font-bold uppercase tracking-[0.4em] text-zinc-500 mb-2">No Parameters Set</h3>
-                                <p className="text-xs text-zinc-700 max-w-xs font-light">Please select a state and city above to unlock the institutional database.</p>
+                                {collegeSearchQuery ? (
+                                    <>
+                                        <h3 className="text-sm font-bold uppercase tracking-[0.4em] text-zinc-500 mb-2">No Matching Results</h3>
+                                        <p className="text-xs text-zinc-700 max-w-xs font-light">
+                                            No colleges found for "{collegeSearchQuery}". Try adjusting your search or filters.
+                                        </p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <h3 className="text-sm font-bold uppercase tracking-[0.4em] text-zinc-500 mb-2">No Parameters Set</h3>
+                                        <p className="text-xs text-zinc-700 max-w-xs font-light">Please select a state and city above to unlock the institutional database.</p>
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>
