@@ -285,7 +285,18 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
                             <div className="space-y-4">
                                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2"><Upload className="w-4 h-4" /> Photos</label>
                                 <div className="border-2 border-dashed border-white/10 rounded-2xl p-8 flex flex-col items-center justify-center hover:border-purple-500/50 hover:bg-purple-500/[0.02] transition-all relative">
-                                    <input type="file" multiple accept="image/*" onChange={(e:any) => setImages([...images, ...Array.from(e.target.files)])} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                    <input
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            if (e.target.files) {
+                                                const newFiles = Array.from(e.target.files);
+                                                setImages((prev) => [...prev, ...newFiles]);
+                                            }
+                                        }}
+                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                    />
                                     <Upload className="w-8 h-8 text-slate-600 mb-2" />
                                     <p className="text-slate-500 text-sm">Upload images</p>
                                 </div>
@@ -310,7 +321,16 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
                                 
                                 <div className="pt-4">
                                     <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2 mb-4"><FileText className="w-4 h-4" /> Brochure (PDF)</label>
-                                    <input type="file" accept=".pdf" onChange={(e:any) => setBrochurePdf(e.target.files[0])} className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20" />
+                                    <input
+                                        type="file"
+                                        accept=".pdf"
+                                        onChange={(e) => {
+                                            if (e.target.files) {
+                                                setBrochurePdf(e.target.files[0]);
+                                            }
+                                        }}
+                                        className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20"
+                                    />
                                 </div>
                             </div>
                         </div>
