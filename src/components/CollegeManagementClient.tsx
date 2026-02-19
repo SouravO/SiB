@@ -6,7 +6,9 @@ import { deleteCollege, createUniversity, getAllUniversities, deleteUniversity }
 import CollegeDetail from './CollegeDetail';
 import { X, Search, Plus, MapPin, Landmark, GraduationCap, Trash2, Eye, LayoutGrid, Globe } from 'lucide-react';
 
-// ... (Interfaces remain exactly the same as your original code)
+interface CollegeManagementClientProps {
+    initialColleges: any[];
+}
 
 export default function CollegeManagementClient({ initialColleges }: CollegeManagementClientProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
