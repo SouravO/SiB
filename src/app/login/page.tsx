@@ -55,8 +55,8 @@ export default function LoginPage() {
       <div className="h-[2px] w-full bg-purple-950 overflow-hidden">
         <div className={`h-full bg-white transition-all duration-1000 ease-out ${isLoading ? 'w-full' : 'w-0'}`} />
       </div>
-      <div className='bg-white/45 w-1/12 rounded-2xl '>
-      <img src="/assets/logo.png" alt="Logo" className='w-full h-full object-contain' />
+      <div className='bg-white md:w-1/8 md:rounded-2xl w-1/3 flex items-center justify-center p-4 mx-auto mt-12 mb-8 rounded-2xl lg:w-1/6'>
+      <img src="/assets/logo.png" alt="Logo" className='w-full h-full object-contain md:scale-155 scale-100' />
         </div>
 
       <main className="flex-1 flex flex-col items-center justify-center px-8 max-w-lg mx-auto w-full">

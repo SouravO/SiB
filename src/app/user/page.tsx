@@ -146,9 +146,9 @@ export default function UserDashboard() {
         <div className="min-h-screen bg-black text-white flex font-sans">
             {/* Sidebar - Fixed Width */}
             <aside className="w-24 lg:w-72 border-r border-white/10 bg-[#080808] flex flex-col py-8 hidden md:flex">
-                <div className="px-4 mb-12 ">
-                    <div className="h-27 w-full bg-white flex items-center justify-center">
-                       <img src="/assets/logo.png" alt="logo" className='w-full h-full object-contain scale-280'/>
+                <div className="px-4 lg:px-8 mb-8 lg:mb-12">
+                    <div className="w-full aspect-[4/1] bg-white rounded-lg flex items-center justify-center p-2 lg:p-4">
+                       <img src="/assets/logo.png" alt="logo" className='w-auto h-full object-contain'/>
                     </div>
                 </div>
 
