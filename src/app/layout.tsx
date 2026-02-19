@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Study In Karanataka",
+  title: "Study In Karanataka - A Comprehensive Guide",
   description: "A comprehensive guide to studying in Karnataka, India.",
 };
 
