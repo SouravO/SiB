@@ -6,7 +6,8 @@ import {
     getStates,
     getCitiesByState,
     getUniversitiesByCity,
-    getAllColleges
+    getAllColleges,
+    getAllCities
 } from '@/app/actions/colleges';
 import { signOut } from './actions';
 import CollegeDetail from '@/components/CollegeDetail';
@@ -28,6 +29,7 @@ export default function UserDashboard() {
     const [profile, setProfile] = useState<any>(null);
     const [states, setStates] = useState<any[]>([]);
     const [cities, setCities] = useState<any[]>([]);
+    const [allCities, setAllCities] = useState<any[]>([]);
     const [universities, setUniversities] = useState<any[]>([]);
     const [colleges, setColleges] = useState<any[]>([]);
     const [selectedState, setSelectedState] = useState<string>('');
@@ -63,6 +65,11 @@ export default function UserDashboard() {
 
             const statesResult = await getStates();
             if (statesResult.success) setStates(statesResult.data || []);
+
+            // Fetch all cities for dashboard display
+            const allCitiesResult = await getAllCities();
+            if (allCitiesResult.success) setAllCities(allCitiesResult.data || []);
+
             setLoading(false);
         };
         fetchUserData();
@@ -110,6 +117,10 @@ export default function UserDashboard() {
 
     const filteredUniversities = universities.filter(university =>
         university.name.toLowerCase().includes(universitySearchQuery.toLowerCase())
+    );
+
+    const filteredAllCities = allCities.filter(city =>
+        city.name.toLowerCase().includes(citySearchQuery.toLowerCase())
     );
 
     const handleUniversityChange = async (universityId: string) => {
@@ -393,9 +404,114 @@ export default function UserDashboard() {
                     </div>
                 </header>
 
-                {/* LISTING SECTION */}
-                <section className="flex-1 overflow-y-auto p-8 lg:p-12 scroll-smooth">
-                    <div className="max-w-7xl mx-auto">
+                <>
+                    {/* CITIES GRID SECTION - Show when no city selected */}
+                    {!selectedCity && (
+                        <section className="flex-1 overflow-y-auto p-8 lg:p-12 scroll-smooth">
+                            <div className="max-w-7xl mx-auto">
+                            <div className="flex items-end justify-between mb-6">
+                                <div>
+                                    <h1 className="text-3xl font-light tracking-tighter text-white mb-2">Explore Cities</h1>
+                                    <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-[0.3em] flex items-center gap-2">
+                                        <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></span>
+                                        {filteredAllCities.length} Cities Available
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* City Search Bar */}
+                            <div className="mb-8">
+                                <div className="relative max-w-2xl">
+                                    <input
+                                        type="text"
+                                        value={citySearchQuery}
+                                        onChange={(e) => {
+                                            setCitySearchQuery(e.target.value);
+                                            setShowCityList(true);
+                                        }}
+                                        onFocus={() => setShowCityList(true)}
+                                        placeholder="Search cities..."
+                                        className="w-full bg-zinc-900/50 border border-white/10 rounded-lg px-4 py-3 pl-11 text-white text-sm outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 placeholder:text-zinc-600 transition-all"
+                                    />
+                                    <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+                                    {citySearchQuery && (
+                                        <button
+                                            onClick={() => setCitySearchQuery('')}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white transition-colors"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {allCities.length === 0 ? (
+                                <div className="h-[50vh] flex flex-col items-center justify-center text-center">
+                                    <div className="w-20 h-20 border border-white/5 flex items-center justify-center mb-8">
+                                        <MapPin className="text-zinc-800" size={30} />
+                                    </div>
+                                    <h3 className="text-sm font-bold uppercase tracking-[0.4em] text-zinc-500 mb-2">Loading Cities</h3>
+                                    <p className="text-xs text-zinc-700 max-w-xs font-light">Please wait while we fetch the available cities.</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pb-20">
+                                    {filteredAllCities.map((city) => (
+                                        <div
+                                            key={city.id}
+                                            onClick={() => handleCityChange(city.id)}
+                                            className="group bg-black border border-white/5 hover:border-purple-500/50 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col"
+                                        >
+                                            {/* Image Container */}
+                                            <div className="relative h-40 bg-zinc-900 overflow-hidden">
+                                                {city.image_url ? (
+                                                    <img
+                                                        src={city.image_url}
+                                                        alt={city.name}
+                                                        className="w-full h-full object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-1000"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-[#0a0a0a]">
+                                                        <MapPin className="text-zinc-800" size={30} />
+                                                    </div>
+                                                )}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-80"></div>
+                                                <div className="absolute bottom-4 left-4 right-4">
+                                                    <h4 className="text-base font-bold uppercase tracking-wider text-white group-hover:text-purple-400 transition-colors">
+                                                        {city.name}
+                                                    </h4>
+                                                </div>
+                                            </div>
+
+                                            {/* Content Area */}
+                                            <div className="p-4 flex-1 flex flex-col border-t border-white/5">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="text-[8px] font-bold text-zinc-500 uppercase border border-zinc-700 px-2 py-0.5">
+                                                        {city.states?.name || 'Select to explore'}
+                                                    </span>
+                                                </div>
+                                                <p className="text-zinc-600 text-xs leading-relaxed line-clamp-2 mb-4 font-light italic">
+                                                    Discover institutions in {city.name}
+                                                </p>
+
+                                                <div className="mt-auto flex justify-between items-center">
+                                                    <span className="text-[9px] font-bold text-purple-500 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        Select City
+                                                    </span>
+                                                    <ChevronRight size={16} className="text-zinc-700 group-hover:text-purple-500 transition-colors" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </section>
+                )}
+
+                    {/* LISTING SECTION */}
+                    {selectedCity && (
+                        <section className="flex-1 overflow-y-auto p-8 lg:p-12 scroll-smooth">
+                        <div className="max-w-7xl mx-auto">
                         <div className="flex items-end justify-between mb-6">
                             <div>
                                 <h1 className="text-3xl font-light tracking-tighter text-white mb-2">The Collection</h1>
@@ -499,14 +615,16 @@ export default function UserDashboard() {
                                     </>
                                 ) : (
                                     <>
-                                        <h3 className="text-sm font-bold uppercase tracking-[0.4em] text-zinc-500 mb-2">No Parameters Set</h3>
-                                        <p className="text-xs text-zinc-700 max-w-xs font-light">Please select a state and city above to unlock the institutional database.</p>
+                                        <h3 className="text-sm font-bold uppercase tracking-[0.4em] text-zinc-500 mb-2">No Universities Found</h3>
+                                        <p className="text-xs text-zinc-700 max-w-xs font-light">Please select a university to view colleges.</p>
                                     </>
                                 )}
                             </div>
                         )}
                     </div>
                 </section>
+                    )}
+                </>
 
                 {/* College Detail Overlay */}
                 {selectedCollegeId && (

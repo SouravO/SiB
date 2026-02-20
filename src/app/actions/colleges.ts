@@ -93,16 +93,42 @@ export async function getStates() {
 export async function getCitiesByState(stateId: string) {
     try {
         const supabase = createAdminClient();
-        const { data, error } = await supabase
-            .from('cities')
-            .select('*')
-            .eq('state_id', stateId)
-            .order('name');
+        let query = supabase.from('cities').select('*');
+
+        if (stateId) {
+            query = query.eq('state_id', stateId);
+        }
+
+        const { data, error } = await query.order('name');
 
         if (error) throw error;
         return { success: true, data: data as City[] };
     } catch (error) {
         console.error('Error fetching cities:', error);
+        return { success: false, error: 'Failed to fetch cities' };
+    }
+}
+
+/**
+ * Get all cities
+ */
+export async function getAllCities() {
+    try {
+        const supabase = createAdminClient();
+        const { data, error } = await supabase
+            .from('cities')
+            .select(`
+                *,
+                states:state_id (
+                    name
+                )
+            `)
+            .order('name');
+
+        if (error) throw error;
+        return { success: true, data: data as any[] };
+    } catch (error) {
+        console.error('Error fetching all cities:', error);
         return { success: false, error: 'Failed to fetch cities' };
     }
 }
