@@ -13,11 +13,15 @@ import {
     createCity,
     createUniversity,
     uploadCityImage,
+    getAllCourses,
+    linkCoursesToCollege,
     type State,
     type City,
-    type University
+    type University,
+    type Course
 } from '@/app/actions/colleges';
-import { X, ChevronRight, ChevronLeft, Upload, Link, CheckCircle2, MapPin, Building2, FileText, Plus, Globe, Image as ImageIcon } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, Upload, Link, CheckCircle2, MapPin, Building2, FileText, Plus, Globe, Image as ImageIcon, GraduationCap } from 'lucide-react';
+import CourseMultiSelect from '@/components/CourseMultiSelect';
 
 interface AddCollegeModalProps {
     isOpen: boolean;
@@ -50,6 +54,10 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
     const [cityImage, setCityImage] = useState<File | null>(null);
     const [cityImagePreview, setCityImagePreview] = useState<string | null>(null);
 
+    // Courses
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([]);
+
     // Step 2: Basic Info
     const [collegeName, setCollegeName] = useState('');
     const [specialization, setSpecialization] = useState('');
@@ -66,11 +74,28 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
     const [videoUrls, setVideoUrls] = useState<string[]>(['']);
     const [brochurePdf, setBrochurePdf] = useState<File | null>(null);
 
-    useEffect(() => { if (isOpen) loadStates(); }, [isOpen]);
+    useEffect(() => {
+        if (isOpen) {
+            loadStates();
+            loadCourses();
+        }
+    }, [isOpen]);
 
     const loadStates = async () => {
         const result = await getStates();
         if (result.success && result.data) setStates(result.data);
+    };
+
+    const loadCourses = async () => {
+        console.log('Loading courses...');
+        const result = await getAllCourses();
+        console.log('Courses result:', result);
+        if (result.success && result.data) {
+            setCourses(result.data);
+            console.log('Courses loaded:', result.data.length);
+        } else {
+            console.error('Failed to load courses:', result.error);
+        }
     };
 
     const handleAddState = async () => {
@@ -166,6 +191,15 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
             });
             if (!collegeResult.success || !collegeResult.data) throw new Error(collegeResult.error || 'Failed to create college');
             const collegeId = collegeResult.data.id;
+
+            // Link courses to college
+            if (selectedCourseIds.length > 0) {
+                const courseLinkResult = await linkCoursesToCollege(collegeId, selectedCourseIds);
+                if (!courseLinkResult.success) {
+                    console.error('Failed to link courses:', courseLinkResult.error);
+                }
+            }
+
             for (const image of images) {
                 const fd = new FormData(); fd.append('collegeId', collegeId); fd.append('file', image);
                 await addCollegeImage(fd);
@@ -297,7 +331,7 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
                                     <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Short Summary</label>
                                     <span className="text-[10px] font-mono text-purple-500">{shortDescription.length}/150</span>
                                 </div>
-                                <textarea 
+                                <textarea
                                     value={shortDescription} onChange={(e) => setShortDescription(e.target.value.slice(0, 150))}
                                     className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:border-purple-500 outline-none h-24 resize-none"
                                     placeholder="Brief highlights of the institution..."
@@ -305,10 +339,19 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
                             </div>
                             <div className="space-y-2">
                                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Detailed Description</label>
-                                <textarea 
+                                <textarea
                                     value={longDescription} onChange={(e) => setLongDescription(e.target.value)}
                                     className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:border-purple-500 outline-none h-48 resize-none leading-relaxed"
                                     placeholder="Provide comprehensive details about courses, facilities, and campus life..."
+                                />
+                            </div>
+
+                            {/* Course Selection */}
+                            <div className="pt-4 border-t border-white/10">
+                                <CourseMultiSelect
+                                    courses={courses}
+                                    selectedCourseIds={selectedCourseIds}
+                                    onChange={setSelectedCourseIds}
                                 />
                             </div>
                         </div>

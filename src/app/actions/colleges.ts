@@ -47,6 +47,24 @@ export interface College {
     created_at: string;
 }
 
+export interface Course {
+    id: string;
+    name: string;
+    slug: string;
+    category: string;
+    degree: string;
+    duration_years: number;
+    description?: string;
+    created_at: string;
+}
+
+export interface CollegeCourse {
+    id: string;
+    college_id: string;
+    course_id: string;
+    created_at: string;
+}
+
 export interface CollegeImage {
     id: string;
     college_id: string;
@@ -883,5 +901,158 @@ export async function uploadBrochure(formData: FormData) {
     } catch (error) {
         console.error('Error uploading brochure:', error);
         return { success: false, error: 'Failed to upload brochure' };
+    }
+}
+
+/**
+ * Get all courses
+ */
+export async function getAllCourses() {
+    try {
+        const supabase = createAdminClient();
+        const { data, error } = await supabase
+            .from('courses')
+            .select('*')
+            .order('category')
+            .order('name');
+
+        if (error) throw error;
+        return { success: true, data: data as Course[] };
+    } catch (error) {
+        console.error('Error fetching courses:', error);
+        return { success: false, error: 'Failed to fetch courses' };
+    }
+}
+
+/**
+ * Get courses by college ID
+ */
+export async function getCoursesByCollege(collegeId: string) {
+    try {
+        const supabase = createAdminClient();
+
+        console.log('Fetching courses for college:', collegeId);
+
+        const { data, error } = await supabase
+            .from('college_courses')
+            .select(`
+                *,
+                courses:course_id (
+                    id,
+                    name,
+                    slug,
+                    category,
+                    degree,
+                    duration_years
+                )
+            `)
+            .eq('college_id', collegeId)
+            .order('courses(category)')
+            .order('courses(name)');
+
+        if (error) {
+            console.error('Supabase error details:', {
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+                code: error.code
+            });
+            throw error;
+        }
+
+        console.log('Fetched courses for college:', { collegeId, count: data?.length });
+
+        return { success: true, data: data as any[] };
+    } catch (error: any) {
+        console.error('Error fetching college courses:', {
+            message: error?.message,
+            details: error?.details,
+            hint: error?.hint,
+            code: error?.code,
+            stack: error?.stack
+        });
+        return {
+            success: false,
+            error: error?.message || 'Failed to fetch college courses',
+            details: error?.details
+        };
+    }
+}
+
+/**
+ * Link courses to college
+ */
+export async function linkCoursesToCollege(collegeId: string, courseIds: string[]) {
+    try {
+        const supabase = createAdminClient();
+
+        console.log('Linking courses to college:', { collegeId, courseIds });
+
+        // First, delete existing course links for this college
+        await supabase
+            .from('college_courses')
+            .delete()
+            .eq('college_id', collegeId);
+
+        // Then insert new course links
+        if (courseIds.length > 0) {
+            const courseLinks = courseIds.map(courseId => ({
+                college_id: collegeId,
+                course_id: courseId
+            }));
+
+            console.log('Inserting course links:', courseLinks);
+
+            const { error } = await supabase
+                .from('college_courses')
+                .insert(courseLinks);
+
+            if (error) {
+                console.error('Error inserting course links:', error);
+                throw error;
+            }
+        }
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error linking courses to college:', error);
+        return { success: false, error: 'Failed to link courses' };
+    }
+}
+
+/**
+ * Create a new course
+ */
+export async function createCourse(data: {
+    name: string;
+    category: string;
+    degree: string;
+    duration_years: number;
+    description?: string;
+}) {
+    try {
+        const supabase = createAdminClient();
+
+        // Generate slug from name
+        const slug = data.name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+
+        const { data: course, error } = await supabase
+            .from('courses')
+            .insert({
+                ...data,
+                slug,
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        return { success: true, data: course as Course };
+    } catch (error) {
+        console.error('Error creating course:', error);
+        return { success: false, error: 'Failed to create course' };
     }
 }

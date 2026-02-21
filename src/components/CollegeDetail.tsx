@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { getCollegeById } from '@/app/actions/colleges';
+import { getCollegeById, getCoursesByCollege } from '@/app/actions/colleges';
 
 interface CollegeImage {
   id: string;
@@ -19,6 +19,15 @@ interface CollegeVideo {
   display_order: number;
 }
 
+interface Course {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  degree: string;
+  duration_years: number;
+}
+
 interface CollegeDetailProps {
   collegeId: string;
   showHeader?: boolean;
@@ -28,6 +37,7 @@ export default function CollegeDetail({ collegeId, showHeader = true }: CollegeD
   const [college, setCollege] = useState<any>(null);
   const [images, setImages] = useState<CollegeImage[]>([]);
   const [videos, setVideos] = useState<CollegeVideo[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,6 +51,16 @@ export default function CollegeDetail({ collegeId, showHeader = true }: CollegeD
           setCollege(result.data);
           setImages(result.data.images || []);
           setVideos(result.data.videos || []);
+
+          // Fetch courses for this college
+          console.log('Fetching courses for college:', collegeId);
+          const coursesResult = await getCoursesByCollege(collegeId);
+          console.log('Courses result:', coursesResult);
+          if (coursesResult.success && coursesResult.data) {
+            const courseList = coursesResult.data.map((cc: any) => cc.courses).filter(Boolean);
+            console.log('Course list:', courseList);
+            setCourses(courseList);
+          }
         } else {
           setError(result.error || 'Failed to fetch college details');
         }
@@ -128,6 +148,55 @@ export default function CollegeDetail({ collegeId, showHeader = true }: CollegeD
                     </p>
                   ) : (
                     <p className="text-white/30 italic">Information pending update.</p>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            {/* Courses Offered */}
+            <section>
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-white/30 mb-8">Academic Programs</h2>
+              <div className="bg-[#111111] p-1 border-white/5 border">
+                <div className="bg-[#0A0A0A] p-8 md:p-12">
+                  {courses.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {courses.map((course) => (
+                        <div
+                          key={course.id}
+                          className="group bg-[#111111] border border-white/5 hover:border-purple-500/30 p-6 transition-all"
+                        >
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex-1">
+                              <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-2">
+                                {course.name}
+                              </h3>
+                              <div className="flex items-center gap-2 mb-3">
+                                <span className="text-[9px] font-bold text-purple-400 uppercase border border-purple-500/30 px-2 py-0.5">
+                                  {course.category}
+                                </span>
+                                <span className="text-[9px] font-bold text-zinc-500 uppercase">
+                                  {course.degree}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 text-xs text-zinc-500">
+                            <span className="flex items-center gap-1">
+                              <div className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
+                              {course.duration_years} {course.duration_years === 1 ? 'year' : 'years'}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <p className="text-zinc-500 text-sm">
+                        {loading
+                          ? 'Loading courses...'
+                          : 'No courses added yet for this college.'}
+                      </p>
+                    </div>
                   )}
                 </div>
               </div>
