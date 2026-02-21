@@ -12,6 +12,7 @@ import {
 import { signOut } from './actions';
 import CollegeDetail from '@/components/CollegeDetail';
 import FloatingContactButtons from '@/components/FloatingContactButtons';
+import BannerCarousel from '@/components/BannerCarousel';
 import {
     LogOut,
     MapPin,
@@ -410,6 +411,7 @@ export default function UserDashboard() {
                     {!selectedCity && (
                         <section className="flex-1 overflow-y-auto p-8 lg:p-12 scroll-smooth">
                             <div className="max-w-7xl mx-auto">
+                            <BannerCarousel />
                             <div className="flex items-end justify-between mb-6">
                                 <div>
                                     <h1 className="text-3xl font-light tracking-tighter text-white mb-2">Explore Cities</h1>
