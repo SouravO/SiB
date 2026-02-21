@@ -11,6 +11,7 @@ import {
 } from '@/app/actions/colleges';
 import { signOut } from './actions';
 import CollegeDetail from '@/components/CollegeDetail';
+import FloatingContactButtons from '@/components/FloatingContactButtons';
 import {
     LogOut,
     MapPin,
@@ -649,6 +650,12 @@ export default function UserDashboard() {
                     </div>
                 )}
             </main>
+
+            {/* Floating Contact Buttons */}
+            <FloatingContactButtons
+                whatsappNumber="919876543210"
+                phoneNumber="919876543210"
+            />
 
             <style jsx global>{`
                 @keyframes progress-loading {
