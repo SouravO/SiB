@@ -74,23 +74,23 @@ export default function CourseMultiSelect({
 
     return (
         <div className="relative">
-            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">
+            <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
                 Courses Offered ({selectedCourseIds.length})
             </label>
-            
+
             {/* Selected Courses Display */}
             <div
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-3 min-h-[50px] cursor-pointer flex flex-wrap gap-2 items-center outline-none focus:border-purple-500/50"
+                className="w-full bg-gray-100 border border-gray-300 rounded-lg px-4 py-3 min-h-[50px] cursor-pointer flex flex-wrap gap-2 items-center outline-none focus:border-purple-500/50"
             >
                 {selectedCourses.length === 0 ? (
-                    <span className="text-zinc-600 text-sm">Select courses...</span>
+                    <span className="text-gray-500 text-sm">Select courses...</span>
                 ) : (
                     <>
                         {selectedCourses.slice(0, 5).map(course => (
                             <span
                                 key={course.id}
-                                className="inline-flex items-center gap-1 bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded px-2 py-1 text-xs"
+                                className="inline-flex items-center gap-1 bg-purple-500/20 text-purple-700 border border-purple-500/30 rounded px-2 py-1 text-xs"
                             >
                                 {course.name}
                                 <button
@@ -99,20 +99,20 @@ export default function CourseMultiSelect({
                                         e.stopPropagation();
                                         handleToggleCourse(course.id);
                                     }}
-                                    className="hover:text-white"
+                                    className="hover:text-purple-900"
                                 >
                                     <X size={12} />
                                 </button>
                             </span>
                         ))}
                         {selectedCourses.length > 5 && (
-                            <span className="text-zinc-500 text-xs">
+                            <span className="text-gray-500 text-xs">
                                 +{selectedCourses.length - 5} more
                             </span>
                         )}
                         <ChevronDown
                             size={16}
-                            className={`ml-auto text-zinc-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                            className={`ml-auto text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                         />
                     </>
                 )}
@@ -120,24 +120,24 @@ export default function CourseMultiSelect({
 
             {/* Dropdown */}
             {isOpen && (
-                <div className="absolute z-50 w-full mt-2 bg-[#0a0a0a] border border-white/10 rounded-lg shadow-2xl max-h-[500px] overflow-hidden flex flex-col">
+                <div className="absolute z-50 w-full mt-2 bg-white border border-gray-300 rounded-lg shadow-2xl max-h-[500px] overflow-hidden flex flex-col">
                     {/* Search and Filter */}
-                    <div className="p-4 border-b border-white/10 space-y-3">
+                    <div className="p-4 border-b border-gray-200 space-y-3">
                         <div className="relative">
                             <input
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Search courses..."
-                                className="w-full bg-zinc-900 border border-white/10 rounded px-3 py-2 text-white text-sm outline-none focus:border-purple-500/30 placeholder:text-zinc-700"
+                                className="w-full bg-gray-50 border border-gray-300 rounded px-3 py-2 text-gray-900 text-sm outline-none focus:border-purple-500/30 placeholder:text-gray-400"
                             />
-                            <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-600" />
+                            <Search size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         </div>
-                        
+
                         <select
                             value={selectedCategory}
                             onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="w-full bg-zinc-900 border border-white/10 rounded px-3 py-2 text-white text-sm outline-none focus:border-purple-500/30"
+                            className="w-full bg-gray-50 border border-gray-300 rounded px-3 py-2 text-gray-900 text-sm outline-none focus:border-purple-500/30"
                         >
                             {categories.map(cat => (
                                 <option key={cat} value={cat}>
@@ -152,12 +152,12 @@ export default function CourseMultiSelect({
                         {Object.entries(coursesByCategory).map(([category, categoryCourses]) => (
                             <div key={category}>
                                 <div className="flex items-center justify-between mb-2">
-                                    <h4 className="text-xs font-bold text-purple-400 uppercase tracking-wider">
+                                    <h4 className="text-xs font-bold text-purple-700 uppercase tracking-wider">
                                         {category}
                                     </h4>
                                     <button
                                         onClick={() => handleSelectAll(category)}
-                                        className="text-xs text-zinc-500 hover:text-purple-400 transition-colors"
+                                        className="text-xs text-gray-500 hover:text-purple-700 transition-colors"
                                     >
                                         {categoryCourses.every(c => selectedCourseIds.includes(c.id))
                                             ? 'Deselect All'
@@ -174,22 +174,22 @@ export default function CourseMultiSelect({
                                                 onClick={() => handleToggleCourse(course.id)}
                                                 className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${
                                                     isSelected
-                                                        ? 'bg-purple-500/10 border-purple-500/30'
-                                                        : 'bg-zinc-900/50 border-white/5 hover:border-white/10'
+                                                        ? 'bg-purple-100 border-purple-500/30'
+                                                        : 'bg-gray-50 border-gray-200 hover:border-gray-300'
                                                 }`}
                                             >
                                                 <div className="text-left">
-                                                    <p className={`text-sm font-medium ${isSelected ? 'text-purple-400' : 'text-white'}`}>
+                                                    <p className={`text-sm font-medium ${isSelected ? 'text-purple-700' : 'text-gray-900'}`}>
                                                         {course.name}
                                                     </p>
-                                                    <p className="text-xs text-zinc-500">
+                                                    <p className="text-xs text-gray-500">
                                                         {course.degree} • {course.duration_years} {course.duration_years === 1 ? 'year' : 'years'}
                                                     </p>
                                                 </div>
                                                 <div className={`w-5 h-5 rounded border flex items-center justify-center ${
                                                     isSelected
                                                         ? 'bg-purple-500 border-purple-500'
-                                                        : 'border-zinc-600'
+                                                        : 'border-gray-300'
                                                 }`}>
                                                     {isSelected && <Check size={12} className="text-white" />}
                                                 </div>
@@ -202,9 +202,9 @@ export default function CourseMultiSelect({
                     </div>
 
                     {/* Footer */}
-                    <div className="p-4 border-t border-white/10 bg-zinc-900/50">
+                    <div className="p-4 border-t border-gray-200 bg-gray-50">
                         <div className="flex justify-between items-center">
-                            <span className="text-xs text-zinc-500">
+                            <span className="text-xs text-gray-500">
                                 {selectedCourseIds.length} course{selectedCourseIds.length !== 1 ? 's' : ''} selected
                             </span>
                             <button

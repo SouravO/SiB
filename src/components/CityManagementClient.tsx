@@ -188,12 +188,12 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
             {/* Header */}
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h3 className="text-xl font-light text-white">City Management</h3>
-                    <p className="text-xs text-zinc-500 mt-1">Manage cities and their images</p>
+                    <h3 className="text-xl font-light text-gray-900">City Management</h3>
+                    <p className="text-xs text-gray-500 mt-1">Manage cities and their images</p>
                 </div>
                 <button
                     onClick={handleOpenAddModal}
-                    className="flex items-center gap-2 px-4 py-2 bg-white text-black rounded-full text-xs font-bold uppercase tracking-widest hover:bg-purple-500 hover:text-white transition-all"
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-purple-500 hover:text-white transition-all shadow-md"
                 >
                     <Plus size={14} />
                     Add City
@@ -205,10 +205,10 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
                 {cities.map((city) => (
                     <div
                         key={city.id}
-                        className="group bg-[#0a0a0a] border border-white/5 hover:border-purple-500/30 rounded-2xl overflow-hidden transition-all"
+                        className="group bg-white border border-gray-200 hover:border-purple-500/30 rounded-2xl overflow-hidden transition-all shadow-sm hover:shadow-md"
                     >
                         {/* Image */}
-                        <div className="relative h-40 bg-zinc-900">
+                        <div className="relative h-40 bg-gray-100">
                             {city.image_url ? (
                                 <img
                                     src={city.image_url}
@@ -217,25 +217,25 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center">
-                                    <MapPin className="text-zinc-700" size={32} />
+                                    <MapPin className="text-gray-400" size={32} />
                                 </div>
                             )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60" />
-                            
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+
                             {/* Actions */}
                             <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button
                                     onClick={() => handleOpenEditModal(city)}
-                                    className="p-2 bg-black/80 hover:bg-purple-500 rounded-full transition-colors"
+                                    className="p-2 bg-white/90 hover:bg-purple-500 rounded-full transition-colors shadow-md"
                                 >
-                                    <Edit size={14} className="text-white" />
+                                    <Edit size={14} className="text-gray-900" />
                                 </button>
                                 {city.image_url && (
                                     <button
                                         onClick={() => handleDeleteImage(city.id)}
-                                        className="p-2 bg-black/80 hover:bg-red-500 rounded-full transition-colors"
+                                        className="p-2 bg-white/90 hover:bg-red-500 rounded-full transition-colors shadow-md"
                                     >
-                                        <Trash2 size={14} className="text-white" />
+                                        <Trash2 size={14} className="text-gray-900" />
                                     </button>
                                 )}
                             </div>
@@ -243,10 +243,10 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
 
                         {/* Content */}
                         <div className="p-4">
-                            <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-2">
+                            <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-2">
                                 {city.name}
                             </h4>
-                            <p className="text-xs text-zinc-500">
+                            <p className="text-xs text-gray-500">
                                 State: {city.states?.name || 'N/A'}
                             </p>
                         </div>
@@ -256,49 +256,49 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
 
             {cities.length === 0 && (
                 <div className="text-center py-20">
-                    <MapPin className="mx-auto text-zinc-700 mb-4" size={48} />
-                    <p className="text-sm text-zinc-500">No cities found. Add your first city.</p>
+                    <MapPin className="mx-auto text-gray-400 mb-4" size={48} />
+                    <p className="text-sm text-gray-500">No cities found. Add your first city.</p>
                 </div>
             )}
 
             {/* Add City Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
-                    <div className="bg-[#0f0f0f] border border-white/10 rounded-3xl p-8 max-w-md w-full">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white border border-gray-200 rounded-3xl p-8 max-w-md w-full shadow-2xl">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-light text-white">Add New City</h3>
+                            <h3 className="text-lg font-light text-gray-900">Add New City</h3>
                             <button
                                 onClick={() => setShowAddModal(false)}
-                                className="p-2 hover:bg-white/5 rounded-full transition-colors"
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                             >
-                                <X size={18} className="text-white" />
+                                <X size={18} className="text-gray-500" />
                             </button>
                         </div>
 
                         <div className="space-y-4">
                             {/* City Name */}
                             <div>
-                                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
                                     City Name
                                 </label>
                                 <input
                                     type="text"
                                     value={newCityName}
                                     onChange={(e) => setNewCityName(e.target.value)}
-                                    className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-purple-500/50"
+                                    className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 text-sm outline-none focus:border-purple-500/50"
                                     placeholder="Enter city name"
                                 />
                             </div>
 
                             {/* State Selector */}
                             <div>
-                                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
                                     State
                                 </label>
                                 <select
                                     value={selectedState}
                                     onChange={(e) => setSelectedState(e.target.value)}
-                                    className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-purple-500/50"
+                                    className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 text-sm outline-none focus:border-purple-500/50"
                                 >
                                     <option value="">Select a state</option>
                                     {states.map((state) => (
@@ -311,7 +311,7 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
 
                             {/* Image Upload */}
                             <div>
-                                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
                                     City Image
                                 </label>
                                 <div className="relative">
@@ -327,15 +327,15 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
                                                     setCityImage(null);
                                                     setImagePreview(null);
                                                 }}
-                                                className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 rounded-full transition-colors"
+                                                className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 rounded-full transition-colors shadow-md"
                                             >
                                                 <X size={14} className="text-white" />
                                             </button>
                                         </div>
                                     ) : (
-                                        <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-zinc-700 rounded-lg cursor-pointer hover:border-purple-500/50 transition-colors">
-                                            <Upload className="text-zinc-600 mb-2" size={24} />
-                                            <span className="text-xs text-zinc-500">Click to upload image</span>
+                                        <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-500/50 transition-colors bg-gray-50">
+                                            <Upload className="text-gray-400 mb-2" size={24} />
+                                            <span className="text-xs text-gray-500">Click to upload image</span>
                                             <input
                                                 type="file"
                                                 accept="image/*"
@@ -354,7 +354,7 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
                             <button
                                 onClick={handleAddCity}
                                 disabled={isLoading}
-                                className="w-full py-3 bg-white text-black rounded-full text-xs font-bold uppercase tracking-widest hover:bg-purple-500 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="w-full py-3 bg-gray-900 text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-purple-500 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md"
                             >
                                 {isLoading && <Loader2 size={14} className="animate-spin" />}
                                 {isLoading ? 'Creating...' : 'Create City'}
@@ -366,35 +366,35 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
 
             {/* Edit City Modal */}
             {showEditModal && editingCity && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm">
-                    <div className="bg-[#0f0f0f] border border-white/10 rounded-3xl p-8 max-w-md w-full">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white border border-gray-200 rounded-3xl p-8 max-w-md w-full shadow-2xl">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-light text-white">Edit City</h3>
+                            <h3 className="text-lg font-light text-gray-900">Edit City</h3>
                             <button
                                 onClick={() => setShowEditModal(false)}
-                                className="p-2 hover:bg-white/5 rounded-full transition-colors"
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                             >
-                                <X size={18} className="text-white" />
+                                <X size={18} className="text-gray-500" />
                             </button>
                         </div>
 
                         <div className="space-y-4">
                             {/* City Name */}
                             <div>
-                                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
                                     City Name
                                 </label>
                                 <input
                                     type="text"
                                     value={newCityName}
                                     onChange={(e) => setNewCityName(e.target.value)}
-                                    className="w-full bg-zinc-900 border border-white/10 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-purple-500/50"
+                                    className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-900 text-sm outline-none focus:border-purple-500/50"
                                 />
                             </div>
 
                             {/* Image Upload */}
                             <div>
-                                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">
                                     City Image
                                 </label>
                                 <div className="relative">
@@ -411,16 +411,16 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
                                                         setCityImage(null);
                                                         setImagePreview(null);
                                                     }}
-                                                    className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 rounded-full transition-colors"
+                                                    className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 rounded-full transition-colors shadow-md"
                                                 >
                                                     <X size={14} className="text-white" />
                                                 </button>
                                             )}
                                         </div>
                                     ) : (
-                                        <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-zinc-700 rounded-lg cursor-pointer hover:border-purple-500/50 transition-colors">
-                                            <Upload className="text-zinc-600 mb-2" size={24} />
-                                            <span className="text-xs text-zinc-500">Click to upload image</span>
+                                        <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-purple-500/50 transition-colors bg-gray-50">
+                                            <Upload className="text-gray-400 mb-2" size={24} />
+                                            <span className="text-xs text-gray-500">Click to upload image</span>
                                             <input
                                                 type="file"
                                                 accept="image/*"
@@ -447,7 +447,7 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
                             <button
                                 onClick={handleUpdateCity}
                                 disabled={isLoading}
-                                className="w-full py-3 bg-white text-black rounded-full text-xs font-bold uppercase tracking-widest hover:bg-purple-500 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="w-full py-3 bg-gray-900 text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-purple-500 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md"
                             >
                                 {isLoading && <Loader2 size={14} className="animate-spin" />}
                                 {isLoading ? 'Updating...' : 'Update City'}
