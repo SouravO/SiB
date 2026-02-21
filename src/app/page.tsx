@@ -1,9 +1,10 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getAllUsers } from '@/app/actions/users';
-import { getAllColleges } from '@/app/actions/colleges';
+import { getAllColleges, getAllCities } from '@/app/actions/colleges';
 import UserManagementClient from '@/components/UserManagementClient';
 import CollegeManagementClient from '@/components/CollegeManagementClient';
+import CityManagementClient from '@/components/CityManagementClient';
 
 async function signOut() {
   'use server';
@@ -40,6 +41,8 @@ export default async function HomePage() {
   const allUsers = await getAllUsers();
   const collegesResult = await getAllColleges();
   const allColleges = collegesResult.success && collegesResult.data ? collegesResult.data : [];
+  const citiesResult = await getAllCities();
+  const allCities = citiesResult.success && citiesResult.data ? citiesResult.data : [];
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-[#eeeeee] antialiased selection:bg-purple-500/30">
@@ -109,6 +112,16 @@ export default async function HomePage() {
             </div>
             <div className="bg-[#0f0f0f] border border-white/5 rounded-3xl p-2 shadow-inner group hover:border-purple-500/20 transition-all duration-700">
               <CollegeManagementClient initialColleges={allColleges} />
+            </div>
+          </section>
+
+          <section className="relative">
+            <div className="flex items-baseline gap-4 mb-8">
+              <h2 className="text-2xl font-light tracking-tight text-white">City Management</h2>
+              <div className="h-[1px] flex-grow bg-white/5" />
+            </div>
+            <div className="bg-[#0f0f0f] border border-white/5 rounded-3xl p-2 shadow-inner group hover:border-purple-500/20 transition-all duration-700">
+              <CityManagementClient initialCities={allCities} />
             </div>
           </section>
         </div>

@@ -12,11 +12,12 @@ import {
     createState,
     createCity,
     createUniversity,
+    uploadCityImage,
     type State,
     type City,
     type University
 } from '@/app/actions/colleges';
-import { X, ChevronRight, ChevronLeft, Upload, Link, CheckCircle2, MapPin, Building2, FileText, Plus, Globe } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, Upload, Link, CheckCircle2, MapPin, Building2, FileText, Plus, Globe, Image as ImageIcon } from 'lucide-react';
 
 interface AddCollegeModalProps {
     isOpen: boolean;
@@ -46,6 +47,8 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
     const [newStateName, setNewStateName] = useState('');
     const [newCityName, setNewCityName] = useState('');
     const [newUniversityName, setNewUniversityName] = useState('');
+    const [cityImage, setCityImage] = useState<File | null>(null);
+    const [cityImagePreview, setCityImagePreview] = useState<string | null>(null);
 
     // Step 2: Basic Info
     const [collegeName, setCollegeName] = useState('');
@@ -84,14 +87,46 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
 
     const handleAddCity = async () => {
         if (!newCityName.trim()) return setError('City name is required');
+
+        console.log('Creating city:', newCityName.trim(), 'in state:', selectedState);
         const result = await createCity(newCityName.trim(), selectedState);
+        console.log('Create city result:', result);
+
         if (result.success && result.data) {
+            // Upload image if provided
+            if (cityImage) {
+                console.log('Uploading city image for city:', result.data.id);
+                const uploadResult = await uploadCityImage(result.data.id, cityImage);
+                console.log('Upload image result:', uploadResult);
+                if (!uploadResult.success) {
+                    console.error('Failed to upload image:', uploadResult.error);
+                    // Don't fail the whole operation, just log the error
+                }
+            }
+
             setCities([...cities, result.data]);
             setSelectedCity(result.data.id);
             setNewCityName('');
+            setCityImage(null);
+            setCityImagePreview(null);
             setShowAddCityModal(false);
             setUniversities([]);
-        } else setError(result.error || 'Failed to create city');
+        } else {
+            console.error('Create city failed:', result);
+            setError(result.error || 'Failed to create city');
+        }
+    };
+
+    const handleCityImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setCityImage(file);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setCityImagePreview(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     const handleAddUniversity = async () => {
@@ -399,14 +434,53 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-6">
                     <div className="bg-[#111] border border-white/10 w-full max-w-sm p-6 rounded-2xl space-y-4">
                         <h3 className="text-lg font-bold text-white">Add New {showAddStateModal ? 'State' : showAddCityModal ? 'City' : 'University'}</h3>
-                        <input 
+                        <input
                             autoFocus value={showAddStateModal ? newStateName : showAddCityModal ? newCityName : newUniversityName}
                             onChange={(e) => showAddStateModal ? setNewStateName(e.target.value) : showAddCityModal ? setNewCityName(e.target.value) : setNewUniversityName(e.target.value)}
                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500"
                             placeholder="Enter name"
                         />
+
+                        {/* City Image Upload */}
+                        {showAddCityModal && (
+                            <div>
+                                <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">
+                                    City Image (Optional)
+                                </label>
+                                {cityImagePreview ? (
+                                    <div className="relative">
+                                        <img
+                                            src={cityImagePreview}
+                                            alt="Preview"
+                                            className="w-full h-32 object-cover rounded-lg"
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                setCityImage(null);
+                                                setCityImagePreview(null);
+                                            }}
+                                            className="absolute top-1 right-1 p-1.5 bg-red-500 hover:bg-red-600 rounded-full transition-colors"
+                                        >
+                                            <X size={12} className="text-white" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-zinc-700 rounded-lg cursor-pointer hover:border-purple-500/50 transition-colors">
+                                        <ImageIcon className="text-zinc-600 mb-1" size={20} />
+                                        <span className="text-xs text-zinc-500">Click to upload</span>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={handleCityImageChange}
+                                            className="hidden"
+                                        />
+                                    </label>
+                                )}
+                            </div>
+                        )}
+
                         <div className="flex gap-3">
-                            <button onClick={() => { setShowAddStateModal(false); setShowAddCityModal(false); setShowAddUniversityModal(false); }} className="flex-1 py-3 text-slate-400 font-semibold">Cancel</button>
+                            <button onClick={() => { setShowAddStateModal(false); setShowAddCityModal(false); setShowAddUniversityModal(false); setCityImage(null); setCityImagePreview(null); }} className="flex-1 py-3 text-slate-400 font-semibold">Cancel</button>
                             <button onClick={showAddStateModal ? handleAddState : showAddCityModal ? handleAddCity : handleAddUniversity} className="flex-1 py-3 bg-white text-black font-bold rounded-xl">Save</button>
                         </div>
                     </div>

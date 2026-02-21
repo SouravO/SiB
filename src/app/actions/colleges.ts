@@ -187,9 +187,11 @@ export async function createState(name: string) {
 /**
  * Create a new city
  */
-export async function createCity(name: string, stateId: string) {
+export async function createCity(name: string, stateId: string, imageUrl?: string) {
     try {
         const supabase = createAdminClient();
+
+        console.log('Creating city:', { name, stateId, imageUrl: !!imageUrl });
 
         // Generate slug from name
         const slug = name
@@ -203,7 +205,41 @@ export async function createCity(name: string, stateId: string) {
                 name,
                 slug,
                 state_id: stateId,
+                image_url: imageUrl,
             })
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Supabase error creating city:', error);
+            throw error;
+        }
+
+        console.log('City created successfully:', city);
+        return { success: true, data: city as City };
+    } catch (error) {
+        console.error('Error creating city:', error);
+        return { success: false, error: 'Failed to create city' };
+    }
+}
+
+/**
+ * Update city information
+ */
+export async function updateCity(
+    cityId: string,
+    data: {
+        name?: string;
+        image_url?: string;
+    }
+) {
+    try {
+        const supabase = createAdminClient();
+
+        const { data: city, error } = await supabase
+            .from('cities')
+            .update(data)
+            .eq('id', cityId)
             .select()
             .single();
 
@@ -211,8 +247,98 @@ export async function createCity(name: string, stateId: string) {
 
         return { success: true, data: city as City };
     } catch (error) {
-        console.error('Error creating city:', error);
-        return { success: false, error: 'Failed to create city' };
+        console.error('Error updating city:', error);
+        return { success: false, error: 'Failed to update city' };
+    }
+}
+
+/**
+ * Upload image to Cloudinary and update city
+ */
+export async function uploadCityImage(cityId: string, file: File) {
+    try {
+        const supabase = createAdminClient();
+
+        if (!cityId || !file) {
+            console.error('Missing cityId or file:', { cityId, file: !!file });
+            throw new Error('Missing required fields');
+        }
+
+        console.log('Uploading image for city:', cityId, 'File:', file.name, 'Size:', file.size, 'Type:', file.type);
+
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        console.log('Buffer size:', buffer.length);
+        console.log('Uploading to Cloudinary...');
+
+        // Upload to Cloudinary
+        const uploadResult = await uploadImage(buffer, 'cities/images');
+        console.log('Cloudinary upload result:', uploadResult.secure_url);
+
+        // Update city with image URL
+        console.log('Updating city', cityId, 'with image_url:', uploadResult.secure_url);
+        const { data, error } = await supabase
+            .from('cities')
+            .update({ image_url: uploadResult.secure_url })
+            .eq('id', cityId)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Supabase update error:', error);
+            throw error;
+        }
+
+        console.log('City updated successfully:', data);
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error uploading city image:', error);
+        return { success: false, error: 'Failed to upload city image' };
+    }
+}
+
+/**
+ * Delete city image
+ */
+export async function deleteCityImage(cityId: string) {
+    try {
+        const supabase = createAdminClient();
+
+        // Get city to find the image URL
+        const { data: city } = await supabase
+            .from('cities')
+            .select('image_url')
+            .eq('id', cityId)
+            .single();
+
+        // Extract public ID from URL if it's a Cloudinary URL
+        if (city?.image_url) {
+            const urlParts = city.image_url.split('/');
+            const filenameWithExt = urlParts[urlParts.length - 1];
+            const filename = filenameWithExt.split('.')[0];
+            const publicId = `cities/images/${filename}`;
+
+            // Try to delete from Cloudinary
+            try {
+                await deleteAsset(publicId, 'image');
+            } catch (cloudinaryError) {
+                console.warn('Could not delete from Cloudinary:', cloudinaryError);
+            }
+        }
+
+        // Remove image URL from city
+        const { error } = await supabase
+            .from('cities')
+            .update({ image_url: null })
+            .eq('id', cityId);
+
+        if (error) throw error;
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting city image:', error);
+        return { success: false, error: 'Failed to delete city image' };
     }
 }
 
