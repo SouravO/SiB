@@ -203,6 +203,61 @@ export async function createState(name: string) {
 }
 
 /**
+ * Update a state
+ */
+export async function updateState(
+    stateId: string,
+    data: { name?: string }
+) {
+    try {
+        const supabase = createAdminClient();
+
+        const updateData: any = { ...data };
+        if (data.name) {
+            updateData.slug = data.name
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)/g, '');
+        }
+
+        const { data: state, error } = await supabase
+            .from('states')
+            .update(updateData)
+            .eq('id', stateId)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        return { success: true, data: state as State };
+    } catch (error) {
+        console.error('Error updating state:', error);
+        return { success: false, error: 'Failed to update state' };
+    }
+}
+
+/**
+ * Delete a state
+ */
+export async function deleteState(stateId: string) {
+    try {
+        const supabase = createAdminClient();
+
+        const { error } = await supabase
+            .from('states')
+            .delete()
+            .eq('id', stateId);
+
+        if (error) throw error;
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting state:', error);
+        return { success: false, error: 'Failed to delete state' };
+    }
+}
+
+/**
  * Create a new city
  */
 export async function createCity(name: string, stateId: string, imageUrl?: string) {
@@ -361,6 +416,47 @@ export async function deleteCityImage(cityId: string) {
 }
 
 /**
+ * Delete a city
+ */
+export async function deleteCity(cityId: string) {
+    try {
+        const supabase = createAdminClient();
+
+        // Get city to find the image URL for cleanup
+        const { data: city } = await supabase
+            .from('cities')
+            .select('image_url')
+            .eq('id', cityId)
+            .single();
+
+        // Try to delete city image from Cloudinary
+        if (city?.image_url) {
+            const urlParts = city.image_url.split('/');
+            const filenameWithExt = urlParts[urlParts.length - 1];
+            const filename = filenameWithExt.split('.')[0];
+            const publicId = `cities/images/${filename}`;
+            try {
+                await deleteAsset(publicId, 'image');
+            } catch (cloudinaryError) {
+                console.warn('Could not delete city image from Cloudinary:', cloudinaryError);
+            }
+        }
+
+        const { error } = await supabase
+            .from('cities')
+            .delete()
+            .eq('id', cityId);
+
+        if (error) throw error;
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting city:', error);
+        return { success: false, error: 'Failed to delete city' };
+    }
+}
+
+/**
  * Create a new university
  */
 export async function createUniversity(name: string, cityId: string) {
@@ -438,6 +534,40 @@ export async function deleteUniversity(universityId: string) {
     } catch (error) {
         console.error('Error deleting university:', error);
         return { success: false, error: 'Failed to delete university' };
+    }
+}
+
+/**
+ * Update a university
+ */
+export async function updateUniversity(
+    universityId: string,
+    data: { name?: string; city_id?: string }
+) {
+    try {
+        const supabase = createAdminClient();
+
+        const updateData: any = { ...data };
+        if (data.name) {
+            updateData.slug = data.name
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)/g, '');
+        }
+
+        const { data: university, error } = await supabase
+            .from('universities')
+            .update(updateData)
+            .eq('id', universityId)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        return { success: true, data: university as University };
+    } catch (error) {
+        console.error('Error updating university:', error);
+        return { success: false, error: 'Failed to update university' };
     }
 }
 
@@ -901,6 +1031,43 @@ export async function uploadBrochure(formData: FormData) {
     } catch (error) {
         console.error('Error uploading brochure:', error);
         return { success: false, error: 'Failed to upload brochure' };
+    }
+}
+
+/**
+ * Upload fee structure PDF
+ */
+export async function uploadFeeStructurePdf(formData: FormData) {
+    try {
+        const supabase = createAdminClient();
+
+        const collegeId = formData.get('collegeId') as string;
+        const file = formData.get('file') as File;
+
+        if (!collegeId || !file) {
+            throw new Error('Missing required fields');
+        }
+
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        // Upload to Cloudinary
+        const uploadResult = await uploadDocument(buffer, 'colleges/documents');
+
+        // Update college with fee structure URL
+        const { data, error } = await supabase
+            .from('colleges')
+            .update({ fee_structure_pdf_url: uploadResult.secure_url })
+            .eq('id', collegeId)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error uploading fee structure PDF:', error);
+        return { success: false, error: 'Failed to upload fee structure PDF' };
     }
 }
 
