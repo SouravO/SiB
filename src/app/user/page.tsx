@@ -462,7 +462,7 @@ export default function UserDashboard() {
                                         <div
                                             key={city.id}
                                             onClick={() => handleCityChange(city.id)}
-                                            className="group bg-white border border-gray-200 hover:border-purple-500/50 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col shadow-sm hover:shadow-md"
+                                            className="group bg-white border border-gray-200 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col shadow-sm hover:shadow-md"
                                         >
                                             {/* Image Container */}
                                             <div className="relative h-40 bg-gray-100 overflow-hidden">
@@ -470,7 +470,7 @@ export default function UserDashboard() {
                                                     <img
                                                         src={city.image_url}
                                                         alt={city.name}
-                                                        className="w-full h-full object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-1000"
+                                                        className="w-full h-full object-cover transition-all duration-1000"
                                                     />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center bg-gray-50">
@@ -479,7 +479,7 @@ export default function UserDashboard() {
                                                 )}
                                                 <div className="absolute inset-0 bg-gradient-to-t from-gray-900/20 to-transparent opacity-80"></div>
                                                 <div className="absolute bottom-4 left-4 right-4">
-                                                    <h4 className="text-base font-bold uppercase tracking-wider text-gray-900 group-hover:text-purple-600 transition-colors">
+                                                    <h4 className="text-base bg-white rounded-lg w-min font-bold uppercase tracking-wider text-purple-600">
                                                         {city.name}
                                                     </h4>
                                                 </div>
@@ -488,19 +488,19 @@ export default function UserDashboard() {
                                             {/* Content Area */}
                                             <div className="p-4 flex-1 flex flex-col border-t border-gray-100">
                                                 <div className="flex items-center gap-2 mb-2">
-                                                    <span className="text-[8px] font-bold text-gray-500 uppercase border border-gray-300 px-2 py-0.5">
+                                                    <span className="text-[8px] font-bold text-purple-600 uppercase border border-purple-300 px-2 py-0.5">
                                                         {city.states?.name || 'Select to explore'}
                                                     </span>
                                                 </div>
-                                                <p className="text-gray-500 text-xs leading-relaxed line-clamp-2 mb-4 font-light italic">
+                                                <p className="text-purple-700 text-xs leading-relaxed line-clamp-2 mb-4 font-light italic">
                                                     Discover institutions in {city.name}
                                                 </p>
 
                                                 <div className="mt-auto flex justify-between items-center">
-                                                    <span className="text-[9px] font-bold text-purple-600 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <span className="text-[9px] font-bold text-purple-600 uppercase tracking-widest transition-opacity">
                                                         Select City
                                                     </span>
-                                                    <ChevronRight size={16} className="text-gray-400 group-hover:text-purple-500 transition-colors" />
+                                                    <ChevronRight size={16} className="text-purple-600" />
                                                 </div>
                                             </div>
                                         </div>
@@ -558,7 +558,7 @@ export default function UserDashboard() {
                                     <div
                                         key={college.id}
                                         onClick={() => setSelectedCollegeId(college.id)}
-                                        className="group bg-white border border-gray-200 hover:border-purple-500 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col shadow-sm hover:shadow-md"
+                                        className="group bg-white border border-gray-200 transition-all duration-500 cursor-pointer overflow-hidden flex flex-col shadow-sm hover:shadow-md"
                                     >
                                         {/* Image Container */}
                                         <div className="relative h-56 bg-gray-100 overflow-hidden">
@@ -566,7 +566,7 @@ export default function UserDashboard() {
                                                 <img
                                                     src={college.image_url}
                                                     alt={college.name}
-                                                    className="w-full h-full object-cover grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-1000"
+                                                    className="w-full h-full object-cover transition-all duration-1000"
                                                 />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center bg-gray-50">
@@ -575,7 +575,7 @@ export default function UserDashboard() {
                                             )}
                                             <div className="absolute inset-0 bg-gradient-to-t from-gray-900/10 to-transparent opacity-60"></div>
                                             <div className="absolute bottom-6 left-6 right-6">
-                                                <h4 className="text-sm font-bold uppercase tracking-wider text-gray-900 mb-1 group-hover:text-purple-600 transition-colors">
+                                                <h4 className="text-sm font-bold uppercase tracking-wider text-purple-600 mb-1">
                                                     {college.name}
                                                 </h4>
                                             </div>
@@ -590,15 +590,15 @@ export default function UserDashboard() {
                                                     </span>
                                                 </div>
                                             )}
-                                            <p className="text-gray-500 text-xs leading-relaxed line-clamp-2 mb-6 font-light italic">
+                                            <p className="text-purple-700 text-xs leading-relaxed line-clamp-2 mb-6 font-light italic">
                                                 "{college.short_description || "A premier institution for advanced studies."}"
                                             </p>
 
                                             <div className="mt-auto flex justify-between items-center">
-                                                <span className="text-[9px] font-bold text-gray-900 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <span className="text-[9px] font-bold text-purple-600 uppercase tracking-widest">
                                                     View Details
                                                 </span>
-                                                <ChevronRight size={16} className="text-gray-400 group-hover:text-purple-600 transition-colors" />
+                                                <ChevronRight size={16} className="text-purple-600" />
                                             </div>
                                         </div>
                                     </div>
