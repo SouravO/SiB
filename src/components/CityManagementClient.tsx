@@ -12,6 +12,7 @@ import {
     type State
 } from '@/app/actions/colleges';
 import { X, Upload, Edit, Trash2, Check, Image as ImageIcon, Loader2, Plus, MapPin } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 interface CityManagementClientProps {
     initialCities: any[];
@@ -24,7 +25,7 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingCity, setEditingCity] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
+    const { success: showSuccess, error: showError } = useToast();
 
     // Add City Form
     const [newCityName, setNewCityName] = useState('');
@@ -45,7 +46,6 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
     const handleOpenAddModal = async () => {
         await loadStates();
         setShowAddModal(true);
-        setError('');
         setNewCityName('');
         setSelectedState('');
         setCityImage(null);
@@ -54,16 +54,34 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
 
     const handleAddCity = async () => {
         if (!newCityName.trim()) {
-            setError('City name is required');
+            showError('City name is required', 'Validation Error');
             return;
         }
         if (!selectedState) {
-            setError('Please select a state');
+            showError('Please select a state', 'Validation Error');
             return;
         }
 
+        // Validate city name length
+        if (newCityName.trim().length < 2) {
+            showError('City name must be at least 2 characters', 'Validation Error');
+            return;
+        }
+
+        // Validate image if provided
+        if (cityImage) {
+            const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(cityImage.type)) {
+                showError('Please upload a JPEG, PNG, or WebP image', 'Invalid File Type');
+                return;
+            }
+            if (cityImage.size > 5 * 1024 * 1024) {
+                showError('Image size must be less than 5MB', 'File Too Large');
+                return;
+            }
+        }
+
         setIsLoading(true);
-        setError('');
 
         try {
             // First create the city
@@ -72,17 +90,16 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
             if (result.success && result.data) {
                 // If there's an image, upload it
                 if (cityImage) {
-                    console.log('Uploading city image for city:', result.data.id);
-                    console.log('Image file:', cityImage.name, 'Size:', cityImage.size);
-
                     const uploadResult = await uploadCityImage(result.data.id, cityImage);
 
                     if (uploadResult.success) {
-                        console.log('Image uploaded successfully:', uploadResult.data);
+                        showSuccess('City and image created successfully', 'City Created');
                     } else {
-                        console.error('Failed to upload image:', uploadResult.error);
-                        setError('City created but image upload failed: ' + uploadResult.error);
+                        showSuccess('City created, but image upload failed', 'Partial Success');
+                        console.error('Image upload error:', uploadResult.error);
                     }
+                } else {
+                    showSuccess('City created successfully', 'City Created');
                 }
 
                 await loadCities();
@@ -92,11 +109,11 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
                 setCityImage(null);
                 setImagePreview(null);
             } else {
-                setError(result.error || 'Failed to create city');
+                showError(result.error || 'Failed to create city', 'Creation Failed');
             }
         } catch (err) {
             console.error('Error creating city:', err);
-            setError('An error occurred while creating the city');
+            showError('An error occurred while creating the city', 'Error');
         } finally {
             setIsLoading(false);
         }
@@ -108,17 +125,20 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
         setSelectedState(city.state_id);
         setImagePreview(city.image_url || null);
         setShowEditModal(true);
-        setError('');
     };
 
     const handleUpdateCity = async () => {
         if (!newCityName.trim()) {
-            setError('City name is required');
+            showError('City name is required', 'Validation Error');
+            return;
+        }
+
+        if (newCityName.trim().length < 2) {
+            showError('City name must be at least 2 characters', 'Validation Error');
             return;
         }
 
         setIsLoading(true);
-        setError('');
 
         try {
             // Update city name
@@ -129,15 +149,16 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
             if (result.success && result.data) {
                 // If there's a new image, upload it
                 if (cityImage) {
-                    console.log('Uploading city image for city:', editingCity.id);
                     const uploadResult = await uploadCityImage(editingCity.id, cityImage);
 
                     if (uploadResult.success) {
-                        console.log('Image uploaded successfully:', uploadResult.data);
+                        showSuccess('City and image updated successfully', 'City Updated');
                     } else {
-                        console.error('Failed to upload image:', uploadResult.error);
-                        setError('City updated but image upload failed: ' + uploadResult.error);
+                        showSuccess('City updated, but image upload failed', 'Partial Success');
+                        console.error('Image upload error:', uploadResult.error);
                     }
+                } else {
+                    showSuccess('City updated successfully', 'City Updated');
                 }
 
                 await loadCities();
@@ -147,11 +168,11 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
                 setCityImage(null);
                 setImagePreview(null);
             } else {
-                setError(result.error || 'Failed to update city');
+                showError(result.error || 'Failed to update city', 'Update Failed');
             }
         } catch (err) {
             console.error('Error updating city:', err);
-            setError('An error occurred while updating the city');
+            showError('An error occurred while updating the city', 'Error');
         } finally {
             setIsLoading(false);
         }
@@ -159,21 +180,37 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
 
     const handleDeleteImage = async (cityId: string) => {
         if (!confirm('Are you sure you want to remove the city image?')) return;
-        
+
         const result = await deleteCityImage(cityId);
         if (result.success) {
+            showSuccess('City image removed successfully', 'Image Deleted');
             await loadCities();
             if (editingCity) {
                 setImagePreview(null);
             }
         } else {
-            setError(result.error || 'Failed to delete image');
+            showError(result.error || 'Failed to delete image', 'Error');
         }
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                showError('Please upload a JPEG, PNG, or WebP image', 'Invalid File Type');
+                e.target.value = '';
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showError('Image size must be less than 5MB', 'File Too Large');
+                e.target.value = '';
+                return;
+            }
+
             setCityImage(file);
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -347,10 +384,6 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
                                 </div>
                             </div>
 
-                            {error && (
-                                <p className="text-xs text-red-500">{error}</p>
-                            )}
-
                             <button
                                 onClick={handleAddCity}
                                 disabled={isLoading}
@@ -439,10 +472,6 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
                                     </button>
                                 )}
                             </div>
-
-                            {error && (
-                                <p className="text-xs text-red-500">{error}</p>
-                            )}
 
                             <button
                                 onClick={handleUpdateCity}

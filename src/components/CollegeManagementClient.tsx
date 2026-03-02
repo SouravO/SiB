@@ -17,6 +17,7 @@ import {
     getAllCities,
 } from '@/app/actions/colleges';
 import CollegeDetail from './CollegeDetail';
+import { useToast } from '@/components/Toast';
 import {
     X, Search, Plus, MapPin, Landmark, GraduationCap, Trash2, Eye, LayoutGrid, Globe,
     Edit, Check, Loader2
@@ -32,6 +33,7 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
     const [deletingCollegeId, setDeletingCollegeId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState<'colleges' | 'states' | 'cities' | 'universities'>('colleges');
+    const { success: showSuccess, error: showError } = useToast();
 
     // Universities
     const [universities, setUniversities] = useState<any[]>([]);
@@ -97,8 +99,12 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
         if (!confirm(`Are you sure you want to delete "${universityName}"?`)) return;
         setDeletingUniversityId(universityId);
         const result = await deleteUniversity(universityId);
-        if (result.success) setUniversities(universities.filter(u => u.id !== universityId));
-        else alert(`Failed: ${result.error}`);
+        if (result.success) {
+            showSuccess('University deleted successfully', 'University Deleted');
+            setUniversities(universities.filter(u => u.id !== universityId));
+        } else {
+            showError(result.error || 'Failed to delete university', 'Delete Failed');
+        }
         setDeletingUniversityId(null);
     };
 
@@ -108,28 +114,44 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
     };
 
     const handleSaveUniversity = async (universityId: string) => {
-        if (!editUniversityName.trim()) return;
+        if (!editUniversityName.trim()) {
+            showError('University name is required', 'Validation Error');
+            return;
+        }
+        if (editUniversityName.trim().length < 2) {
+            showError('University name must be at least 2 characters', 'Validation Error');
+            return;
+        }
         setSavingUniversity(true);
         const result = await updateUniversity(universityId, { name: editUniversityName.trim() });
         if (result.success) {
+            showSuccess('University updated successfully', 'University Updated');
             setUniversities(universities.map(u => u.id === universityId ? { ...u, name: editUniversityName.trim() } : u));
             setEditingUniversityId(null);
         } else {
-            alert(`Failed: ${result.error}`);
+            showError(result.error || 'Failed to update university', 'Update Failed');
         }
         setSavingUniversity(false);
     };
 
     // ── State CRUD ──
     const handleAddState = async () => {
-        if (!newStateName.trim()) return;
+        if (!newStateName.trim()) {
+            showError('State name is required', 'Validation Error');
+            return;
+        }
+        if (newStateName.trim().length < 2) {
+            showError('State name must be at least 2 characters', 'Validation Error');
+            return;
+        }
         setAddingState(true);
         const result = await createState(newStateName.trim());
         if (result.success && result.data) {
+            showSuccess('State created successfully', 'State Created');
             setStates([...states, result.data]);
             setNewStateName('');
         } else {
-            alert(`Failed: ${result.error}`);
+            showError(result.error || 'Failed to create state', 'Create Failed');
         }
         setAddingState(false);
     };
@@ -140,14 +162,22 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
     };
 
     const handleSaveState = async (stateId: string) => {
-        if (!editStateName.trim()) return;
+        if (!editStateName.trim()) {
+            showError('State name is required', 'Validation Error');
+            return;
+        }
+        if (editStateName.trim().length < 2) {
+            showError('State name must be at least 2 characters', 'Validation Error');
+            return;
+        }
         setSavingState(true);
         const result = await updateState(stateId, { name: editStateName.trim() });
         if (result.success) {
+            showSuccess('State updated successfully', 'State Updated');
             setStates(states.map(s => s.id === stateId ? { ...s, name: editStateName.trim() } : s));
             setEditingStateId(null);
         } else {
-            alert(`Failed: ${result.error}`);
+            showError(result.error || 'Failed to update state', 'Update Failed');
         }
         setSavingState(false);
     };
@@ -156,8 +186,12 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
         if (!confirm(`Are you sure you want to delete "${stateName}"? This will also delete all cities and universities under it.`)) return;
         setDeletingStateId(stateId);
         const result = await deleteState(stateId);
-        if (result.success) setStates(states.filter(s => s.id !== stateId));
-        else alert(`Failed: ${result.error}`);
+        if (result.success) {
+            showSuccess('State deleted successfully', 'State Deleted');
+            setStates(states.filter(s => s.id !== stateId));
+        } else {
+            showError(result.error || 'Failed to delete state', 'Delete Failed');
+        }
         setDeletingStateId(null);
     };
 
@@ -166,8 +200,12 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
         if (!confirm(`Are you sure you want to delete "${collegeName}"?`)) return;
         setDeletingCollegeId(collegeId);
         const result = await deleteCollege(collegeId);
-        if (result.success) setColleges(colleges.filter(c => c.id !== collegeId));
-        else alert(`Failed: ${result.error}`);
+        if (result.success) {
+            showSuccess('College deleted successfully', 'College Deleted');
+            setColleges(colleges.filter(c => c.id !== collegeId));
+        } else {
+            showError(result.error || 'Failed to delete college', 'Delete Failed');
+        }
         setDeletingCollegeId(null);
     };
 

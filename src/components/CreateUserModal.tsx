@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createUserWithRole, type UserRole } from '@/app/actions/users';
+import { useToast } from '@/components/Toast';
 
 interface CreateUserModalProps {
     isOpen: boolean;
@@ -17,13 +18,28 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess, currentUse
     const [fullName, setFullName] = useState('');
     const [role, setRole] = useState<UserRole>('user');
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState(false);
+    const { success: showSuccess, error: showError } = useToast();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validation
+        if (!email || !email.includes('@')) {
+            showError('Please enter a valid email address', 'Invalid Email');
+            return;
+        }
+
+        if (!password || password.length < 6) {
+            showError('Password must be at least 6 characters', 'Weak Password');
+            return;
+        }
+
+        if (role === 'admin' && !isSuperAdmin) {
+            showError('Only super admin can create admin accounts', 'Permission Denied');
+            return;
+        }
+
         setIsLoading(true);
-        setError(null);
 
         const result = await createUserWithRole({
             email,
@@ -36,18 +52,15 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess, currentUse
         setIsLoading(false);
 
         if (result.success) {
-            setSuccess(true);
-            setTimeout(() => {
-                setEmail('');
-                setPassword('');
-                setFullName('');
-                setRole('user');
-                setSuccess(false);
-                onSuccess();
-                onClose();
-            }, 1500);
+            showSuccess('User account created successfully', 'User Created');
+            setEmail('');
+            setPassword('');
+            setFullName('');
+            setRole('user');
+            onSuccess();
+            onClose();
         } else {
-            setError(result.error || 'Failed to create user');
+            showError(result.error || 'Failed to create user', 'Creation Failed');
         }
     };
 
@@ -57,8 +70,6 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess, currentUse
             setPassword('');
             setFullName('');
             setRole('user');
-            setError(null);
-            setSuccess(false);
             onClose();
         }
     };
@@ -91,19 +102,6 @@ export default function CreateUserModal({ isOpen, onClose, onSuccess, currentUse
                             </svg>
                         </button>
                     </div>
-
-                    {/* Success/Error status in CRED style */}
-                    {success && (
-                        <div className="mb-6 p-4 bg-green-100 text-green-800 text-xs font-black uppercase tracking-widest text-center">
-                            User Authorized Successfully
-                        </div>
-                    )}
-
-                    {error && (
-                        <div className="mb-6 p-4 border border-red-500/50 text-red-600 text-xs font-bold uppercase tracking-widest text-center">
-                            {error}
-                        </div>
-                    )}
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-6">

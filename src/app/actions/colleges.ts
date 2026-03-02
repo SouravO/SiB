@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import { uploadImage, uploadVideo, uploadDocument, deleteAsset } from '@/lib/cloudinary';
+import { handleSupabaseError, successResult, errorResult, validateRequired } from '@/lib/error-handler';
 
 export interface State {
     id: string;
@@ -98,10 +99,9 @@ export async function getStates() {
             .order('name');
 
         if (error) throw error;
-        return { success: true, data: data as State[] };
+        return successResult(data as State[]);
     } catch (error) {
-        console.error('Error fetching states:', error);
-        return { success: false, error: 'Failed to fetch states' };
+        return handleSupabaseError(error, 'fetch states');
     }
 }
 
@@ -120,10 +120,9 @@ export async function getCitiesByState(stateId: string) {
         const { data, error } = await query.order('name');
 
         if (error) throw error;
-        return { success: true, data: data as City[] };
+        return successResult(data as City[]);
     } catch (error) {
-        console.error('Error fetching cities:', error);
-        return { success: false, error: 'Failed to fetch cities' };
+        return handleSupabaseError(error, 'fetch cities');
     }
 }
 
@@ -144,10 +143,9 @@ export async function getAllCities() {
             .order('name');
 
         if (error) throw error;
-        return { success: true, data: data as any[] };
+        return successResult(data as any[]);
     } catch (error) {
-        console.error('Error fetching all cities:', error);
-        return { success: false, error: 'Failed to fetch cities' };
+        return handleSupabaseError(error, 'fetch cities');
     }
 }
 
@@ -164,10 +162,9 @@ export async function getUniversitiesByCity(cityId: string) {
             .order('name');
 
         if (error) throw error;
-        return { success: true, data: data as University[] };
+        return successResult(data as University[]);
     } catch (error) {
-        console.error('Error fetching universities:', error);
-        return { success: false, error: 'Failed to fetch universities' };
+        return handleSupabaseError(error, 'fetch universities');
     }
 }
 
@@ -175,6 +172,20 @@ export async function getUniversitiesByCity(cityId: string) {
  * Create a new state
  */
 export async function createState(name: string) {
+    // Validation
+    const nameError = validateRequired(name, 'State name');
+    if (nameError) {
+        return errorResult(nameError);
+    }
+
+    if (name.length < 2) {
+        return errorResult('State name must be at least 2 characters long');
+    }
+
+    if (name.length > 100) {
+        return errorResult('State name must be less than 100 characters');
+    }
+
     try {
         const supabase = createAdminClient();
 
@@ -183,6 +194,17 @@ export async function createState(name: string) {
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)/g, '');
+
+        // Check for duplicate
+        const { data: existing } = await supabase
+            .from('states')
+            .select('id')
+            .eq('slug', slug)
+            .single();
+
+        if (existing) {
+            return errorResult('A state with this name already exists');
+        }
 
         const { data: state, error } = await supabase
             .from('states')
@@ -195,10 +217,9 @@ export async function createState(name: string) {
 
         if (error) throw error;
 
-        return { success: true, data: state as State };
+        return successResult(state as State);
     } catch (error) {
-        console.error('Error creating state:', error);
-        return { success: false, error: 'Failed to create state' };
+        return handleSupabaseError(error, 'create state');
     }
 }
 
@@ -209,6 +230,20 @@ export async function updateState(
     stateId: string,
     data: { name?: string }
 ) {
+    const idError = validateRequired(stateId, 'State ID');
+    if (idError) {
+        return errorResult(idError);
+    }
+
+    if (data.name) {
+        if (data.name.length < 2) {
+            return errorResult('State name must be at least 2 characters long');
+        }
+        if (data.name.length > 100) {
+            return errorResult('State name must be less than 100 characters');
+        }
+    }
+
     try {
         const supabase = createAdminClient();
 
@@ -229,10 +264,9 @@ export async function updateState(
 
         if (error) throw error;
 
-        return { success: true, data: state as State };
+        return successResult(state as State);
     } catch (error) {
-        console.error('Error updating state:', error);
-        return { success: false, error: 'Failed to update state' };
+        return handleSupabaseError(error, 'update state');
     }
 }
 
@@ -240,6 +274,11 @@ export async function updateState(
  * Delete a state
  */
 export async function deleteState(stateId: string) {
+    const idError = validateRequired(stateId, 'State ID');
+    if (idError) {
+        return errorResult(idError);
+    }
+
     try {
         const supabase = createAdminClient();
 
@@ -250,10 +289,9 @@ export async function deleteState(stateId: string) {
 
         if (error) throw error;
 
-        return { success: true };
+        return successResult(true);
     } catch (error) {
-        console.error('Error deleting state:', error);
-        return { success: false, error: 'Failed to delete state' };
+        return handleSupabaseError(error, 'delete state');
     }
 }
 

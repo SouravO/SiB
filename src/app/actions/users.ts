@@ -2,6 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
+import { handleSupabaseError, successResult, errorResult, validateRequired, validateEmail, validatePassword } from '@/lib/error-handler';
 
 export type UserRole = 'user' | 'admin';
 
@@ -26,27 +27,57 @@ export interface UserWithProfile {
 const SUPER_ADMIN_EMAIL = 'studyinbengalurub2b@gmail.com';
 
 export async function createUserWithRole(input: CreateUserInput) {
+    // Validation
+    const emailError = validateEmail(input.email);
+    if (emailError) {
+        return errorResult(emailError);
+    }
+
+    const passwordError = validatePassword(input.password);
+    if (passwordError) {
+        return errorResult(passwordError);
+    }
+
+    const roleError = validateRequired(input.role, 'Role');
+    if (roleError) {
+        return errorResult(roleError);
+    }
+
+    if (!['user', 'admin'].includes(input.role)) {
+        return errorResult('Invalid role selected');
+    }
+
     try {
         const supabase = createAdminClient();
 
         // Check permissions: Only super admin can create admins
         if (input.role === 'admin' && input.createdBy !== SUPER_ADMIN_EMAIL) {
-            return { success: false, error: 'Only super admin can create admin accounts' };
+            return errorResult('Only super admin can create admin accounts');
         }
 
         // 1. Create user in auth.users
         const { data: authData, error: authError } = await supabase.auth.admin.createUser({
             email: input.email,
             password: input.password,
-            email_confirm: true, // Auto-confirm so they can login immediately
+            email_confirm: true,
         });
 
         if (authError) {
-            return { success: false, error: authError.message };
+            // Handle specific auth errors
+            if (authError.message.includes('User already registered')) {
+                return errorResult('An account with this email already exists. Please use a different email address.');
+            }
+            if (authError.message.includes('Weak password')) {
+                return errorResult('Password is too weak. Please use at least 6 characters.');
+            }
+            if (authError.message.includes('Invalid email')) {
+                return errorResult('Please enter a valid email address.');
+            }
+            return errorResult(`Failed to create user account: ${authError.message}`);
         }
 
         if (!authData.user) {
-            return { success: false, error: 'Failed to create user' };
+            return errorResult('Failed to create user account. Please try again.');
         }
 
         // 2. Create profile with role in user_profiles table
@@ -62,14 +93,13 @@ export async function createUserWithRole(input: CreateUserInput) {
         if (profileError) {
             // If profile creation fails, delete the auth user to maintain consistency
             await supabase.auth.admin.deleteUser(authData.user.id);
-            return { success: false, error: `Profile creation failed: ${profileError.message}` };
+            return errorResult(`Profile creation failed: ${profileError.message}`);
         }
 
         revalidatePath('/');
-        return { success: true, user: authData.user };
+        return successResult(authData.user);
     } catch (error) {
-        console.error('Error creating user:', error);
-        return { success: false, error: 'An unexpected error occurred' };
+        return handleSupabaseError(error, 'create user');
     }
 }
 
@@ -117,6 +147,11 @@ export async function getAllUsers(): Promise<UserWithProfile[]> {
 }
 
 export async function deleteUser(userId: string, deletedBy?: string) {
+    const idError = validateRequired(userId, 'User ID');
+    if (idError) {
+        return errorResult(idError);
+    }
+
     try {
         const supabase = createAdminClient();
 
@@ -127,27 +162,38 @@ export async function deleteUser(userId: string, deletedBy?: string) {
             .eq('id', userId)
             .single();
 
+        if (!userToDelete) {
+            return errorResult('User not found');
+        }
+
         // Check permissions: Only super admin can delete admins
-        if (userToDelete?.role === 'admin' && deletedBy !== SUPER_ADMIN_EMAIL) {
-            return { success: false, error: 'Only super admin can delete admin accounts' };
+        if (userToDelete.role === 'admin' && deletedBy !== SUPER_ADMIN_EMAIL) {
+            return errorResult('Only super admin can delete admin accounts');
         }
 
         // Prevent deletion of super admin
-        if (userToDelete?.email === SUPER_ADMIN_EMAIL) {
-            return { success: false, error: 'Cannot delete super admin account' };
+        if (userToDelete.email === SUPER_ADMIN_EMAIL) {
+            return errorResult('Cannot delete super admin account');
+        }
+
+        // Prevent user from deleting themselves
+        if (deletedBy && userToDelete.email === deletedBy) {
+            return errorResult('You cannot delete your own account');
         }
 
         // Delete from auth (profile will cascade delete if FK is set up)
         const { error } = await supabase.auth.admin.deleteUser(userId);
 
         if (error) {
-            return { success: false, error: error.message };
+            if (error.message.includes('not found')) {
+                return errorResult('User not found or already deleted');
+            }
+            return errorResult(`Failed to delete user: ${error.message}`);
         }
 
         revalidatePath('/');
-        return { success: true };
+        return successResult(true);
     } catch (error) {
-        console.error('Error deleting user:', error);
-        return { success: false, error: 'An unexpected error occurred' };
+        return handleSupabaseError(error, 'delete user');
     }
 }

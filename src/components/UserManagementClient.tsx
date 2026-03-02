@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import CreateUserModal from './CreateUserModal';
 import { deleteUser, type UserWithProfile } from '@/app/actions/users';
+import { useToast } from '@/components/Toast';
 
 interface UserManagementClientProps {
     initialUsers: UserWithProfile[];
@@ -17,6 +18,7 @@ export default function UserManagementClient({ initialUsers, currentUserId, curr
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [users, setUsers] = useState(initialUsers);
     const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+    const { success: showSuccess, error: showError } = useToast();
 
     const handleSuccess = () => {
         window.location.reload();
@@ -24,12 +26,12 @@ export default function UserManagementClient({ initialUsers, currentUserId, curr
 
     const handleDeleteUser = async (userId: string, userEmail: string, userRole: string) => {
         if (userEmail === SUPER_ADMIN_EMAIL) {
-            alert('Cannot delete super admin account!');
+            showError('Cannot delete super admin account', 'Permission Denied');
             return;
         }
 
         if (userRole === 'admin' && !isSuperAdmin) {
-            alert('Only super admin can delete admin accounts!');
+            showError('Only super admin can delete admin accounts', 'Permission Denied');
             return;
         }
 
@@ -41,9 +43,10 @@ export default function UserManagementClient({ initialUsers, currentUserId, curr
         const result = await deleteUser(userId, currentUserEmail);
 
         if (result.success) {
+            showSuccess('User account deleted successfully', 'User Deleted');
             setUsers(users.filter(u => u.id !== userId));
         } else {
-            alert(`Failed to delete user: ${result.error}`);
+            showError(result.error || 'Failed to delete user', 'Delete Failed');
         }
         setDeletingUserId(null);
     };

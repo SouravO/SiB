@@ -3,19 +3,32 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { useToast } from '@/components/Toast';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { error: showError, success: showSuccess } = useToast();
   const supabase = createClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
+
+    // Validation
+    if (!email || !email.includes('@')) {
+      showError('Please enter a valid email address', 'Invalid Email');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!password || password.length < 6) {
+      showError('Password must be at least 6 characters', 'Invalid Password');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -24,12 +37,21 @@ export default function LoginPage() {
       });
 
       if (signInError) {
-        setError(signInError.message);
+        // Handle specific error messages
+        if (signInError.message.includes('Invalid login credentials')) {
+          showError('The email or password you entered is incorrect. Please check and try again.', 'Login Failed');
+        } else if (signInError.message.includes('Email not confirmed')) {
+          showError('Please verify your email address before logging in.', 'Email Not Verified');
+        } else {
+          showError(signInError.message, 'Login Failed');
+        }
         setIsLoading(false);
         return;
       }
 
       if (data.user) {
+        showSuccess('Welcome back!', 'Login Successful');
+
         const { data: profile } = await supabase
           .from('user_profiles')
           .select('role')
@@ -44,7 +66,7 @@ export default function LoginPage() {
         router.refresh();
       }
     } catch (err) {
-      setError('Internal security error.');
+      showError('An unexpected error occurred. Please try again.', 'Login Failed');
       setIsLoading(false);
     }
   };
@@ -70,13 +92,6 @@ export default function LoginPage() {
             <span className="font-semibold text-white">privileges.</span>
           </h1>
         </div>
-
-        {/* Error Notification */}
-        {error && (
-          <div className="w-full mb-8 py-3 text-purple-100 text-xs font-mono border-l-2 border-purple-300 pl-4 bg-white/10">
-             {error.toUpperCase()}
-          </div>
-        )}
 
         {/* Credentials Form */}
         <form onSubmit={handleSubmit} className="w-full space-y-12">
