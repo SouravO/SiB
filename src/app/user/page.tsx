@@ -479,7 +479,7 @@ export default function UserDashboard() {
                                                 )}
                                                 <div className="absolute inset-0 bg-gradient-to-t from-gray-900/20 to-transparent opacity-80"></div>
                                                 <div className="absolute bottom-4 left-4 right-4">
-                                                    <h4 className="text-base bg-white rounded-lg w-min font-bold uppercase tracking-wider text-purple-600">
+                                                    <h4 className="text-base bg-white/80 p-2 rounded-lg w-min font-bold uppercase tracking-wider text-purple-600">
                                                         {city.name}
                                                     </h4>
                                                 </div>
