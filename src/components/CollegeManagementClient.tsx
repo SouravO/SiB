@@ -329,7 +329,7 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
 
                                         <div className="pt-4 border-t border-gray-100 flex justify-between items-center text-[10px] font-mono text-gray-400">
                                             <span>UID: {college.id.split('-')[0]}</span>
-                                            <span>{new Date(college.created_at).toLocaleDateString()}</span>
+                                            <span>{new Date(college.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                                         </div>
                                     </div>
                                 ))

@@ -20,8 +20,9 @@ import {
     type University,
     type Course
 } from '@/app/actions/colleges';
-import { X, ChevronRight, ChevronLeft, Upload, Link, CheckCircle2, MapPin, Building2, FileText, Plus, Globe, Image as ImageIcon, GraduationCap } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, Upload, Link, CheckCircle2, MapPin, Building2, FileText, Plus, Globe, Image as ImageIcon, GraduationCap, Loader2 } from 'lucide-react';
 import CourseMultiSelect from '@/components/CourseMultiSelect';
+import { useToast } from '@/components/Toast';
 
 interface AddCollegeModalProps {
     isOpen: boolean;
@@ -35,6 +36,7 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
     const [currentStep, setCurrentStep] = useState<Step>(1);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const { success: showSuccess, error: showError } = useToast();
 
     // Step 1: Location
     const [states, setStates] = useState<State[]>([]);
@@ -53,6 +55,11 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
     const [newUniversityName, setNewUniversityName] = useState('');
     const [cityImage, setCityImage] = useState<File | null>(null);
     const [cityImagePreview, setCityImagePreview] = useState<string | null>(null);
+
+    // Loading states for individual actions
+    const [addingState, setAddingState] = useState(false);
+    const [addingCity, setAddingCity] = useState(false);
+    const [addingUniversity, setAddingUniversity] = useState(false);
 
     // Courses
     const [courses, setCourses] = useState<Course[]>([]);
@@ -99,22 +106,63 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
     };
 
     const handleAddState = async () => {
-        if (!newStateName.trim()) return setError('State name is required');
+        if (!newStateName.trim()) {
+            showError('State name is required', 'Validation Error');
+            return;
+        }
+        if (newStateName.trim().length < 2) {
+            showError('State name must be at least 2 characters', 'Validation Error');
+            return;
+        }
+
+        setAddingState(true);
         const result = await createState(newStateName.trim());
+        setAddingState(false);
+
         if (result.success && result.data) {
+            showSuccess('State created successfully', 'State Created');
             setStates([...states, result.data]);
             setSelectedState(result.data.id);
             setNewStateName('');
             setShowAddStateModal(false);
-            setCities([]); setUniversities([]);
-        } else setError(result.error || 'Failed to create state');
+            setCities([]);
+            setUniversities([]);
+        } else {
+            showError(result.error || 'Failed to create state', 'Create Failed');
+        }
     };
 
     const handleAddCity = async () => {
-        if (!newCityName.trim()) return setError('City name is required');
+        if (!newCityName.trim()) {
+            showError('City name is required', 'Validation Error');
+            return;
+        }
+        if (newCityName.trim().length < 2) {
+            showError('City name must be at least 2 characters', 'Validation Error');
+            return;
+        }
+        if (!selectedState) {
+            showError('Please select a state first', 'Validation Error');
+            return;
+        }
 
+        // Validate image if provided
+        if (cityImage) {
+            const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(cityImage.type)) {
+                showError('Please upload a JPEG, PNG, or WebP image', 'Invalid File Type');
+                return;
+            }
+            if (cityImage.size > 5 * 1024 * 1024) {
+                showError('Image size must be less than 5MB', 'File Too Large');
+                return;
+            }
+        }
+
+        setAddingCity(true);
         console.log('Creating city:', newCityName.trim(), 'in state:', selectedState);
         const result = await createCity(newCityName.trim(), selectedState);
+        setAddingCity(false);
         console.log('Create city result:', result);
 
         if (result.success && result.data) {
@@ -123,10 +171,14 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
                 console.log('Uploading city image for city:', result.data.id);
                 const uploadResult = await uploadCityImage(result.data.id, cityImage);
                 console.log('Upload image result:', uploadResult);
-                if (!uploadResult.success) {
+                if (uploadResult.success) {
+                    showSuccess('City and image created successfully', 'City Created');
+                } else {
+                    showSuccess('City created, but image upload failed', 'Partial Success');
                     console.error('Failed to upload image:', uploadResult.error);
-                    // Don't fail the whole operation, just log the error
                 }
+            } else {
+                showSuccess('City created successfully', 'City Created');
             }
 
             setCities([...cities, result.data]);
@@ -138,7 +190,7 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
             setUniversities([]);
         } else {
             console.error('Create city failed:', result);
-            setError(result.error || 'Failed to create city');
+            showError(result.error || 'Failed to create city. Please check if the city name already exists.', 'Create Failed');
         }
     };
 
@@ -155,14 +207,30 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
     };
 
     const handleAddUniversity = async () => {
-        if (!newUniversityName.trim()) return setError('University name is required');
+        if (!newUniversityName.trim()) {
+            showError('University name is required', 'Validation Error');
+            return;
+        }
+        if (newUniversityName.trim().length < 2) {
+            showError('University name must be at least 2 characters', 'Validation Error');
+            return;
+        }
+        if (!selectedCity) {
+            showError('Please select a city first', 'Validation Error');
+            return;
+        }
+        setAddingUniversity(true);
         const result = await createUniversity(newUniversityName.trim(), selectedCity);
+        setAddingUniversity(false);
         if (result.success && result.data) {
+            showSuccess('University created successfully', 'University Created');
             setUniversities([...universities, result.data]);
             setSelectedUniversity(result.data.id);
             setNewUniversityName('');
             setShowAddUniversityModal(false);
-        } else setError(result.error || 'Failed to create university');
+        } else {
+            showError(result.error || 'Failed to create university', 'Create Failed');
+        }
     };
 
     const handleStateChange = async (stateId: string) => {
@@ -258,8 +326,6 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
 
                 {/* FORM BODY */}
                 <div className="flex-1 overflow-y-auto p-6 md:p-8">
-                    {error && <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-xl text-red-700 text-sm font-medium">{error}</div>}
-
                     {/* STEP 1: LOCATION */}
                     {currentStep === 1 && (
                         <div className="space-y-6 max-w-xl">
@@ -523,8 +589,27 @@ export default function AddCollegeModal({ isOpen, onClose, onSuccess }: AddColle
                         )}
 
                         <div className="flex gap-3">
-                            <button onClick={() => { setShowAddStateModal(false); setShowAddCityModal(false); setShowAddUniversityModal(false); setCityImage(null); setCityImagePreview(null); }} className="flex-1 py-3 text-gray-500 font-semibold hover:text-gray-700">Cancel</button>
-                            <button onClick={showAddStateModal ? handleAddState : showAddCityModal ? handleAddCity : handleAddUniversity} className="flex-1 py-3 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700">Save</button>
+                            <button
+                                onClick={() => { setShowAddStateModal(false); setShowAddCityModal(false); setShowAddUniversityModal(false); setCityImage(null); setCityImagePreview(null); }}
+                                disabled={addingState || addingCity || addingUniversity}
+                                className="flex-1 py-3 text-gray-500 font-semibold hover:text-gray-700 disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={showAddStateModal ? handleAddState : showAddCityModal ? handleAddCity : handleAddUniversity}
+                                disabled={addingState || addingCity || addingUniversity}
+                                className="flex-1 py-3 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            >
+                                {addingState || addingCity || addingUniversity ? (
+                                    <>
+                                        <Loader2 size={18} className="animate-spin" />
+                                        Processing...
+                                    </>
+                                ) : (
+                                    'Save'
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>
