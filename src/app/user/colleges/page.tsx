@@ -103,9 +103,7 @@ export default function CollegesPage() {
                                     </div>
                                 )}
                                 <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm">
-                                    <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">
-                                        {college.specialization || 'General'}
-                                    </span>
+                                 
                                 </div>
                             </div>
                             
@@ -114,17 +112,28 @@ export default function CollegesPage() {
                                     {college.name}
                                 </h3>
                                 
-                                <div className="mt-auto pt-6 border-t border-gray-50 flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
+                                <div className="mt-auto pt-6 border-t border-gray-50 flex items-center justify-between flex-col">
+                                  
+                                  
+                                      <span className="text-[10px] font-bold text-purple-600 uppercase tracking-[0.15em]">
+    {Array.isArray(college.specialization) 
+        ? college.specialization.join(', ') 
+        : (college.specialization || 'General')}
+</span>
+                                      <div className="flex items-center gap-2">
                                         <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
                                             <Compass size={14} />
                                         </div>
+                                        <div className="flex items-center gap-2 group-hover:gap-4 transition-all">
+
                                         <span className="text-xs font-bold text-gray-400">
                                             {college.universities?.cities?.name || 'View Dossier'}
                                         </span>
-                                    </div>
-                                    <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-purple-600 group-hover:text-white transition-all transform group-hover:rotate-45">
+                                          <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-purple-600 group-hover:text-white transition-all transform group-hover:rotate-45">
                                         <ChevronRight size={18} />
+                                        </div>
+
+                                    </div>
                                     </div>
                                 </div>
                             </div>
