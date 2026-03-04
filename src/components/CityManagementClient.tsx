@@ -7,6 +7,7 @@ import {
     updateCity,
     uploadCityImage,
     deleteCityImage,
+    deleteCity,
     getStates,
     type City,
     type State
@@ -27,11 +28,33 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
     const [isLoading, setIsLoading] = useState(false);
     const { success: showSuccess, error: showError } = useToast();
 
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(9); // 3x3 grid
+
     // Add City Form
     const [newCityName, setNewCityName] = useState('');
     const [selectedState, setSelectedState] = useState('');
     const [cityImage, setCityImage] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+    // Pagination calculations
+    const totalPages = Math.ceil(cities.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedCities = cities.slice(startIndex, endIndex);
+
+    const goToPage = (page: number) => {
+        setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+    };
+
+    const goToPreviousPage = () => {
+        setCurrentPage(Math.max(1, currentPage - 1));
+    };
+
+    const goToNextPage = () => {
+        setCurrentPage(Math.min(totalPages, currentPage + 1));
+    };
 
     const loadStates = async () => {
         const result = await getStates();
@@ -40,7 +63,10 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
 
     const loadCities = async () => {
         const result = await getAllCities();
-        if (result.success && result.data) setCities(result.data);
+        if (result.success && result.data) {
+            setCities(result.data);
+            setCurrentPage(1); // Reset to first page after refresh
+        }
     };
 
     const handleOpenAddModal = async () => {
@@ -193,6 +219,18 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
         }
     };
 
+    const handleDeleteCity = async (cityId: string, cityName: string) => {
+        if (!confirm(`Are you sure you want to delete the city "${cityName}"? This action cannot be undone.`)) return;
+
+        const result = await deleteCity(cityId);
+        if (result.success) {
+            showSuccess('City deleted successfully', 'City Deleted');
+            await loadCities();
+        } else {
+            showError(result.error || 'Failed to delete city', 'Error');
+        }
+    };
+
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -239,7 +277,7 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
 
             {/* Cities Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {cities.map((city) => (
+                {paginatedCities.map((city) => (
                     <div
                         key={city.id}
                         className="group bg-white border border-gray-200 hover:border-purple-500/30 rounded-2xl overflow-hidden transition-all shadow-sm hover:shadow-md"
@@ -267,14 +305,12 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
                                 >
                                     <Edit size={14} className="text-gray-900" />
                                 </button>
-                                {city.image_url && (
-                                    <button
-                                        onClick={() => handleDeleteImage(city.id)}
-                                        className="p-2 bg-white/90 hover:bg-red-500 rounded-full transition-colors shadow-md"
-                                    >
-                                        <Trash2 size={14} className="text-gray-900" />
-                                    </button>
-                                )}
+                                <button
+                                    onClick={() => handleDeleteCity(city.id, city.name)}
+                                    className="p-2 bg-white/90 hover:bg-red-500 rounded-full transition-colors shadow-md"
+                                >
+                                    <Trash2 size={14} className="text-gray-900" />
+                                </button>
                             </div>
                         </div>
 
@@ -290,6 +326,50 @@ export default function CityManagementClient({ initialCities }: CityManagementCl
                     </div>
                 ))}
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-8">
+                    <button
+                        onClick={goToPreviousPage}
+                        disabled={currentPage === 1}
+                        className="px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-full border border-gray-300 hover:border-purple-500 hover:bg-purple-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Previous
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                            <button
+                                key={page}
+                                onClick={() => goToPage(page)}
+                                className={`w-8 h-8 rounded-full text-xs font-bold transition-all ${
+                                    currentPage === page
+                                        ? 'bg-gray-900 text-white'
+                                        : 'bg-white text-gray-700 border border-gray-300 hover:border-purple-500 hover:bg-purple-50'
+                                }`}
+                            >
+                                {page}
+                            </button>
+                        ))}
+                    </div>
+
+                    <button
+                        onClick={goToNextPage}
+                        disabled={currentPage === totalPages}
+                        className="px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-full border border-gray-300 hover:border-purple-500 hover:bg-purple-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
+
+            {/* Page Info */}
+            {cities.length > 0 && (
+                <p className="text-center text-xs text-gray-500 mt-4">
+                    Showing {startIndex + 1}-{Math.min(endIndex, cities.length)} of {cities.length} cities
+                </p>
+            )}
 
             {cities.length === 0 && (
                 <div className="text-center py-20">

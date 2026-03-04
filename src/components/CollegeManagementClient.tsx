@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import AddCollegeModal from './AddCollegeModal';
 import EditCollegeModal from './EditCollegeModal';
 import CityManagementClient from './CityManagementClient';
+import UniversityManagementClient from './UniversityManagementClient';
 import {
     deleteCollege,
     createUniversity,
@@ -34,6 +35,15 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState<'colleges' | 'states' | 'cities' | 'universities'>('colleges');
     const { success: showSuccess, error: showError } = useToast();
+
+    // University modal control
+    const [showUniversityAddModal, setShowUniversityAddModal] = useState(false);
+
+    // Pagination
+    const [collegesPage, setCollegesPage] = useState(1);
+    const [universitiesPage, setUniversitiesPage] = useState(1);
+    const [statesPage, setStatesPage] = useState(1);
+    const [itemsPerPage] = useState(8);
 
     // Universities
     const [universities, setUniversities] = useState<any[]>([]);
@@ -68,9 +78,9 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
     const handleSuccess = () => window.location.reload();
 
     useEffect(() => {
-        if (activeTab === 'universities') loadUniversities();
-        if (activeTab === 'states') loadStates();
-        if (activeTab === 'cities') loadCities();
+        if (activeTab === 'universities') { loadUniversities(); setUniversitiesPage(1); }
+        if (activeTab === 'states') { loadStates(); setStatesPage(1); }
+        if (activeTab === 'cities') { loadCities(); setCollegesPage(1); }
     }, [activeTab]);
 
     const loadUniversities = async () => {
@@ -224,6 +234,24 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
         s.name.toLowerCase().includes(stateSearchTerm.toLowerCase())
     );
 
+    // Pagination calculations
+    const collegesTotalPages = Math.ceil(filteredColleges.length / itemsPerPage);
+    const universitiesTotalPages = Math.ceil(filteredUniversities.length / itemsPerPage);
+    const statesTotalPages = Math.ceil(filteredStates.length / itemsPerPage);
+
+    const paginatedColleges = filteredColleges.slice(
+        (collegesPage - 1) * itemsPerPage,
+        collegesPage * itemsPerPage
+    );
+    const paginatedUniversities = filteredUniversities.slice(
+        (universitiesPage - 1) * itemsPerPage,
+        universitiesPage * itemsPerPage
+    );
+    const paginatedStates = filteredStates.slice(
+        (statesPage - 1) * itemsPerPage,
+        statesPage * itemsPerPage
+    );
+
     return (
         <div className="min-h-screen bg-gray-50 text-gray-900 p-4 md:p-8 font-sans">
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -268,9 +296,9 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
                                 type="text"
                                 value={activeTab === 'colleges' ? searchTerm : activeTab === 'universities' ? universitySearchTerm : stateSearchTerm}
                                 onChange={(e) => {
-                                    if (activeTab === 'colleges') setSearchTerm(e.target.value);
-                                    else if (activeTab === 'universities') setUniversitySearchTerm(e.target.value);
-                                    else if (activeTab === 'states') setStateSearchTerm(e.target.value);
+                                    if (activeTab === 'colleges') { setSearchTerm(e.target.value); setCollegesPage(1); }
+                                    else if (activeTab === 'universities') { setUniversitySearchTerm(e.target.value); setUniversitiesPage(1); }
+                                    else if (activeTab === 'states') { setStateSearchTerm(e.target.value); setStatesPage(1); }
                                 }}
                                 placeholder={`Search ${activeTab}...`}
                                 className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-300 rounded-xl focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
@@ -285,6 +313,15 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
                                 ADD COLLEGE
                             </button>
                         )}
+                        {activeTab === 'universities' && (
+                            <button
+                                onClick={() => setShowUniversityAddModal(true)}
+                                className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-gray-900 text-white font-black rounded-xl hover:bg-purple-500 hover:text-white transition-all duration-300 active:scale-95 shadow-md"
+                            >
+                                <Plus className="w-5 h-5" />
+                                ADD UNIVERSITY
+                            </button>
+                        )}
                     </div>
 
                     {/* CONTENT GRID */}
@@ -292,8 +329,9 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
 
                         {/* ═══ COLLEGES TAB ═══ */}
                         {activeTab === 'colleges' && (
-                            filteredColleges.length > 0 ? (
-                                filteredColleges.map((college) => (
+                            <>
+                            {filteredColleges.length > 0 ? (
+                                paginatedColleges.map((college) => (
                                     <div key={college.id} className="group relative bg-white border border-gray-200 rounded-2xl p-6 hover:border-purple-500/50 transition-all duration-500 overflow-hidden shadow-sm hover:shadow-md">
                                         <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
                                             <button onClick={() => setEditingCollegeId(college.id)} className="p-2 bg-purple-50 hover:bg-purple-500 text-purple-500 hover:text-white rounded-lg transition-all shadow-sm" title="Edit">
@@ -338,69 +376,66 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
                                     <LayoutGrid className="w-12 h-12 mx-auto text-gray-300 mb-4" />
                                     <p className="text-gray-500 font-medium">No results found in the database.</p>
                                 </div>
-                            )
+                            )}
+
+                            {/* Pagination Controls for Colleges */}
+                            {collegesTotalPages > 1 && (
+                                <div className="col-span-full flex items-center justify-center gap-2 mt-8">
+                                    <button
+                                        onClick={() => setCollegesPage(Math.max(1, collegesPage - 1))}
+                                        disabled={collegesPage === 1}
+                                        className="px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-full border border-gray-300 hover:border-purple-500 hover:bg-purple-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Previous
+                                    </button>
+
+                                    <div className="flex items-center gap-1">
+                                        {Array.from({ length: collegesTotalPages }, (_, i) => i + 1).map((page) => (
+                                            <button
+                                                key={page}
+                                                onClick={() => setCollegesPage(page)}
+                                                className={`w-8 h-8 rounded-full text-xs font-bold transition-all ${
+                                                    collegesPage === page
+                                                        ? 'bg-gray-900 text-white'
+                                                        : 'bg-white text-gray-700 border border-gray-300 hover:border-purple-500 hover:bg-purple-50'
+                                                }`}
+                                            >
+                                                {page}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <button
+                                        onClick={() => setCollegesPage(Math.min(collegesTotalPages, collegesPage + 1))}
+                                        disabled={collegesPage === collegesTotalPages}
+                                        className="px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-full border border-gray-300 hover:border-purple-500 hover:bg-purple-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            )}
+                            </>
                         )}
 
                         {/* ═══ UNIVERSITIES TAB ═══ */}
                         {activeTab === 'universities' && (
                             loadingUniversities ? (
                                 <div className="col-span-full text-center py-20 animate-pulse text-purple-500 font-mono">LOADING_DATA...</div>
-                            ) : filteredUniversities.length > 0 ? (
-                                filteredUniversities.map((uni) => (
-                                    <div key={uni.id} className="bg-white border border-gray-200 p-6 rounded-2xl flex justify-between items-center shadow-sm group hover:border-purple-500/30 transition-all">
-                                        <div className="flex-1 min-w-0">
-                                            {editingUniversityId === uni.id ? (
-                                                <input
-                                                    type="text" value={editUniversityName} onChange={(e) => setEditUniversityName(e.target.value)}
-                                                    className="w-full bg-gray-50 border border-purple-400 rounded-lg px-3 py-2 text-gray-900 text-lg font-bold outline-none focus:ring-2 focus:ring-purple-500/30"
-                                                    autoFocus
-                                                    onKeyDown={(e) => { if (e.key === 'Enter') handleSaveUniversity(uni.id); if (e.key === 'Escape') setEditingUniversityId(null); }}
-                                                />
-                                            ) : (
-                                                <>
-                                                    <h3 className="font-bold text-gray-900 text-lg">{uni.name}</h3>
-                                                    <p className="text-sm text-gray-500 uppercase tracking-tighter">{uni.cities?.name}</p>
-                                                </>
-                                            )}
-                                        </div>
-                                        <div className="flex items-center gap-2 ml-4">
-                                            {editingUniversityId === uni.id ? (
-                                                <>
-                                                    <button onClick={() => handleSaveUniversity(uni.id)} disabled={savingUniversity}
-                                                        className="p-3 text-green-600 hover:bg-green-50 rounded-xl transition-all">
-                                                        {savingUniversity ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
-                                                    </button>
-                                                    <button onClick={() => setEditingUniversityId(null)}
-                                                        className="p-3 text-gray-500 hover:bg-gray-100 rounded-xl transition-all">
-                                                        <X className="w-5 h-5" />
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <button onClick={() => handleStartEditUniversity(uni)}
-                                                        className="p-3 text-purple-500 hover:bg-purple-50 rounded-xl transition-all opacity-0 group-hover:opacity-100">
-                                                        <Edit className="w-5 h-5" />
-                                                    </button>
-                                                    <button onClick={() => handleDeleteUniversity(uni.id, uni.name)}
-                                                        className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-all">
-                                                        <Trash2 className="w-5 h-5" />
-                                                    </button>
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))
                             ) : (
-                                <div className="col-span-full py-20 text-center border-2 border-dashed border-gray-200 rounded-3xl bg-gray-50">
-                                    <Landmark className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-                                    <p className="text-gray-500 font-medium">No universities found.</p>
+                                <div className="col-span-full">
+                                    <UniversityManagementClient
+                                        initialUniversities={universities}
+                                        showAddModal={showUniversityAddModal}
+                                        onAddModalClose={() => setShowUniversityAddModal(false)}
+                                    />
                                 </div>
                             )
                         )}
 
                         {/* ═══ STATES TAB ═══ */}
                         {activeTab === 'states' && (
-                            loadingStates ? (
+                            <>
+                            {loadingStates ? (
                                 <div className="col-span-full text-center py-20 animate-pulse text-purple-500 font-mono">LOADING_DATA...</div>
                             ) : (
                                 <>
@@ -422,7 +457,7 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
                                     </div>
 
                                     {/* States list */}
-                                    {filteredStates.map((state) => (
+                                    {paginatedStates.map((state) => (
                                         <div key={state.id} className="bg-white border border-gray-200 p-6 rounded-2xl flex justify-between items-center shadow-sm group hover:border-purple-500/30 transition-all">
                                             <div className="flex-1 min-w-0">
                                                 {editingStateId === state.id ? (
@@ -472,7 +507,45 @@ export default function CollegeManagementClient({ initialColleges }: CollegeMana
                                         </div>
                                     )}
                                 </>
-                            )
+                            )}
+
+                            {/* Pagination Controls for States */}
+                            {statesTotalPages > 1 && (
+                                <div className="col-span-full flex items-center justify-center gap-2 mt-8">
+                                    <button
+                                        onClick={() => setStatesPage(Math.max(1, statesPage - 1))}
+                                        disabled={statesPage === 1}
+                                        className="px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-full border border-gray-300 hover:border-purple-500 hover:bg-purple-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Previous
+                                    </button>
+
+                                    <div className="flex items-center gap-1">
+                                        {Array.from({ length: statesTotalPages }, (_, i) => i + 1).map((page) => (
+                                            <button
+                                                key={page}
+                                                onClick={() => setStatesPage(page)}
+                                                className={`w-8 h-8 rounded-full text-xs font-bold transition-all ${
+                                                    statesPage === page
+                                                        ? 'bg-gray-900 text-white'
+                                                        : 'bg-white text-gray-700 border border-gray-300 hover:border-purple-500 hover:bg-purple-50'
+                                                }`}
+                                            >
+                                                {page}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <button
+                                        onClick={() => setStatesPage(Math.min(statesTotalPages, statesPage + 1))}
+                                        disabled={statesPage === statesTotalPages}
+                                        className="px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-full border border-gray-300 hover:border-purple-500 hover:bg-purple-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            )}
+                            </>
                         )}
 
                         {/* ═══ CITIES TAB ═══ */}

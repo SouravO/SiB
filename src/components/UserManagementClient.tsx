@@ -20,6 +20,28 @@ export default function UserManagementClient({ initialUsers, currentUserId, curr
     const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
     const { success: showSuccess, error: showError } = useToast();
 
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage] = useState(10);
+
+    // Pagination calculations
+    const totalPages = Math.ceil(users.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedUsers = users.slice(startIndex, endIndex);
+
+    const goToPage = (page: number) => {
+        setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+    };
+
+    const goToPreviousPage = () => {
+        setCurrentPage(Math.max(1, currentPage - 1));
+    };
+
+    const goToNextPage = () => {
+        setCurrentPage(Math.min(totalPages, currentPage + 1));
+    };
+
     const handleSuccess = () => {
         window.location.reload();
     };
@@ -73,14 +95,14 @@ export default function UserManagementClient({ initialUsers, currentUserId, curr
                 </div>
 
                 {/* User List - CRED Style Table */}
-                <div className="px-4 pb-8">
+                <div className="px-4 pb-4">
                     <div className="flex flex-col gap-[1px] bg-gray-100 border border-gray-200 rounded-2xl overflow-hidden">
-                        {users.length === 0 ? (
+                        {paginatedUsers.length === 0 ? (
                             <div className="bg-gray-50 p-12 text-center">
                                 <p className="text-gray-500 text-sm font-light tracking-wide italic">No members currently in the network.</p>
                             </div>
                         ) : (
-                            users.map((user) => {
+                            paginatedUsers.map((user) => {
                                 const isSuperAdminUser = user.email === SUPER_ADMIN_EMAIL;
                                 const isCurrentUser = user.id === currentUserId;
 
@@ -141,6 +163,50 @@ export default function UserManagementClient({ initialUsers, currentUserId, curr
                             })
                         )}
                     </div>
+
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                        <div className="flex items-center justify-center gap-2 mt-4">
+                            <button
+                                onClick={goToPreviousPage}
+                                disabled={currentPage === 1}
+                                className="px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-full border border-gray-300 hover:border-purple-500 hover:bg-purple-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Previous
+                            </button>
+
+                            <div className="flex items-center gap-1">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                    <button
+                                        key={page}
+                                        onClick={() => goToPage(page)}
+                                        className={`w-8 h-8 rounded-full text-xs font-bold transition-all ${
+                                            currentPage === page
+                                                ? 'bg-gray-900 text-white'
+                                                : 'bg-white text-gray-700 border border-gray-300 hover:border-purple-500 hover:bg-purple-50'
+                                        }`}
+                                    >
+                                        {page}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <button
+                                onClick={goToNextPage}
+                                disabled={currentPage === totalPages}
+                                className="px-4 py-2 text-xs font-bold uppercase tracking-widest rounded-full border border-gray-300 hover:border-purple-500 hover:bg-purple-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Next
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Page Info */}
+                    {users.length > 0 && (
+                        <p className="text-center text-xs text-gray-500 mt-4">
+                            Showing {startIndex + 1}-{Math.min(endIndex, users.length)} of {users.length} members
+                        </p>
+                    )}
                 </div>
             </div>
 

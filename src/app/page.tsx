@@ -1,10 +1,11 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { getAllUsers } from '@/app/actions/users';
-import { getAllColleges, getAllCities } from '@/app/actions/colleges';
+import { getAllColleges, getAllCities, getAllUniversities } from '@/app/actions/colleges';
 import UserManagementClient from '@/components/UserManagementClient';
 import CollegeManagementClient from '@/components/CollegeManagementClient';
 import CityManagementClient from '@/components/CityManagementClient';
+import UniversityManagementClient from '@/components/UniversityManagementClient';
 
 async function signOut() {
   'use server';
@@ -43,6 +44,8 @@ export default async function HomePage() {
   const allColleges = collegesResult.success && collegesResult.data ? collegesResult.data : [];
   const citiesResult = await getAllCities();
   const allCities = citiesResult.success && citiesResult.data ? citiesResult.data : [];
+  const universitiesResult = await getAllUniversities();
+  const allUniversities = universitiesResult.success && universitiesResult.data ? universitiesResult.data : [];
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 antialiased selection:bg-purple-500/30">
@@ -73,11 +76,12 @@ export default async function HomePage() {
         </header>
 
         {/* Cred-Style Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-[1px] bg-gray-200 border border-gray-200 rounded-3xl overflow-hidden mb-16 shadow-xl">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-[1px] bg-gray-200 border border-gray-200 rounded-3xl overflow-hidden mb-16 shadow-xl">
           {[
             { label: 'Network Population', value: allUsers.length },
             { label: 'Privileged Access', value: allUsers.filter(u => u.role === 'admin').length },
-            { label: 'Institutions', value: allColleges.length }
+            { label: 'Institutions', value: allColleges.length },
+            { label: 'Universities', value: allUniversities.length }
           ].map((stat, i) => (
             <div key={i} className="bg-white p-10 hover:bg-gray-50 transition-colors group shadow-sm">
               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em] mb-4 group-hover:text-purple-600 transition-colors">
@@ -122,6 +126,16 @@ export default async function HomePage() {
             </div>
             <div className="bg-white border border-gray-200 rounded-3xl p-2 shadow-sm group hover:border-purple-500/20 transition-all duration-700">
               <CityManagementClient initialCities={allCities} />
+            </div>
+          </section>
+
+          <section className="relative">
+            <div className="flex items-baseline gap-4 mb-8">
+              <h2 className="text-2xl font-light tracking-tight text-gray-900">University Management</h2>
+              <div className="h-[1px] flex-grow bg-gray-200" />
+            </div>
+            <div className="bg-white border border-gray-200 rounded-3xl p-2 shadow-sm group hover:border-purple-500/20 transition-all duration-700">
+              <UniversityManagementClient initialUniversities={allUniversities} />
             </div>
           </section>
         </div>

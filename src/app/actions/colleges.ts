@@ -454,11 +454,116 @@ export async function deleteCityImage(cityId: string) {
 }
 
 /**
+ * Upload university image
+ */
+export async function uploadUniversityImage(universityId: string, file: File) {
+    try {
+        const supabase = createAdminClient();
+
+        if (!universityId || !file) {
+            console.error('Missing universityId or file:', { universityId, file: !!file });
+            throw new Error('Missing required fields');
+        }
+
+        console.log('Uploading image for university:', universityId, 'File:', file.name, 'Size:', file.size, 'Type:', file.type);
+
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        console.log('Buffer size:', buffer.length);
+        console.log('Uploading to Cloudinary...');
+
+        // Upload to Cloudinary
+        const uploadResult = await uploadImage(buffer, 'universities/images');
+        console.log('Cloudinary upload result:', uploadResult.secure_url);
+
+        // Update university with image URL
+        console.log('Updating university', universityId, 'with image_url:', uploadResult.secure_url);
+        const { data, error } = await supabase
+            .from('universities')
+            .update({ image_url: uploadResult.secure_url })
+            .eq('id', universityId)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Supabase update error:', error);
+            throw error;
+        }
+
+        console.log('University updated successfully:', data);
+        return { success: true, data };
+    } catch (error) {
+        console.error('Error uploading university image:', error);
+        return { success: false, error: 'Failed to upload university image' };
+    }
+}
+
+/**
+ * Delete university image
+ */
+export async function deleteUniversityImage(universityId: string) {
+    try {
+        const supabase = createAdminClient();
+
+        // Get university to find the image URL
+        const { data: university } = await supabase
+            .from('universities')
+            .select('image_url')
+            .eq('id', universityId)
+            .single();
+
+        // Extract public ID from URL if it's a Cloudinary URL
+        if (university?.image_url) {
+            const urlParts = university.image_url.split('/');
+            const filenameWithExt = urlParts[urlParts.length - 1];
+            const filename = filenameWithExt.split('.')[0];
+            const publicId = `universities/images/${filename}`;
+
+            // Try to delete from Cloudinary
+            try {
+                await deleteAsset(publicId, 'image');
+            } catch (cloudinaryError) {
+                console.warn('Could not delete from Cloudinary:', cloudinaryError);
+            }
+        }
+
+        // Remove image URL from university
+        const { error } = await supabase
+            .from('universities')
+            .update({ image_url: null })
+            .eq('id', universityId);
+
+        if (error) throw error;
+
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting university image:', error);
+        return { success: false, error: 'Failed to delete university image' };
+    }
+}
+
+/**
  * Delete a city
  */
 export async function deleteCity(cityId: string) {
     try {
         const supabase = createAdminClient();
+
+        // Check if any universities are linked to this city
+        const { data: linkedUniversities } = await supabase
+            .from('universities')
+            .select('id, name')
+            .eq('city_id', cityId)
+            .limit(5);
+
+        if (linkedUniversities && linkedUniversities.length > 0) {
+            const universityNames = linkedUniversities.map(u => u.name).join(', ');
+            return {
+                success: false,
+                error: `Cannot delete city because it has ${linkedUniversities.length} university/ies linked: ${universityNames}. Please remove or reassign these universities first.`
+            };
+        }
 
         // Get city to find the image URL for cleanup
         const { data: city } = await supabase
@@ -560,7 +665,22 @@ export async function deleteUniversity(universityId: string) {
     try {
         const supabase = createAdminClient();
 
-        // Delete the university (this will cascade delete related colleges if configured in the DB)
+        // Check if any colleges are linked to this university
+        const { data: linkedColleges } = await supabase
+            .from('colleges')
+            .select('id, name')
+            .eq('university_id', universityId)
+            .limit(5);
+
+        if (linkedColleges && linkedColleges.length > 0) {
+            const collegeNames = linkedColleges.map(c => c.name).join(', ');
+            return {
+                success: false,
+                error: `Cannot delete university because it has ${linkedColleges.length} college/ies linked: ${collegeNames}. Please remove or reassign these colleges first.`
+            };
+        }
+
+        // Delete the university
         const { error } = await supabase
             .from('universities')
             .delete()
