@@ -48,6 +48,7 @@ export default function UserDashboard() {
     const [showCityList, setShowCityList] = useState(false);
     const [stateSearchQuery, setStateSearchQuery] = useState('');
     const [showStateList, setShowStateList] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
     const [universitySearchQuery, setUniversitySearchQuery] = useState('');
     const [showUniversityList, setShowUniversityList] = useState(false);
     const [collegeSearchQuery, setCollegeSearchQuery] = useState('');
@@ -157,7 +158,9 @@ export default function UserDashboard() {
     );
 
     const filteredAllCities = allCities.filter(city =>
-        city.name.toLowerCase().includes(citySearchQuery.toLowerCase())
+        city.name.toLowerCase().includes(citySearchQuery.toLowerCase()) &&
+        city.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+        city.states?.name?.toLowerCase() === 'karnataka'
     );
 
     const filteredColleges = colleges.filter(college =>
@@ -184,12 +187,32 @@ export default function UserDashboard() {
 
             <BannerCarousel />
 
-           
-
             {/* Content Section */}
             {!selectedCity ? (
                 <>
                 <section className="space-y-6">
+                    {/* Search Bar */}
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <Search className="w-5 h-5 text-gray-400" />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search for colleges, universities, or cities..."
+                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        )}
+                    </div>
+
                     <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Explore Popular Cities</h2>
                         <Link 
