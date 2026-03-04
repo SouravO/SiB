@@ -98,9 +98,15 @@ export default function UniversityManagementClient({ initialUniversities, showAd
         }
 
         setIsLoading(true);
+        console.log('[UniversityManagementClient] Creating university:', {
+            name: newUniversityName.trim(),
+            cityId: selectedCity,
+        });
 
         try {
             const result = await createUniversity(newUniversityName.trim(), selectedCity);
+
+            console.log('[UniversityManagementClient] Create result:', result);
 
             if (result.success && result.data) {
                 showSuccess('University created successfully', 'University Created');
@@ -109,11 +115,12 @@ export default function UniversityManagementClient({ initialUniversities, showAd
                 setNewUniversityName('');
                 setSelectedCity('');
             } else {
+                console.error('[UniversityManagementClient] Creation failed:', result.error);
                 showError(result.error || 'Failed to create university', 'Creation Failed');
             }
         } catch (err) {
-            console.error('Error creating university:', err);
-            showError('An error occurred while creating the university', 'Error');
+            console.error('[UniversityManagementClient] Error creating university:', err);
+            showError('An error occurred while creating the university. Check browser console for details.', 'Error');
         } finally {
             setIsLoading(false);
         }

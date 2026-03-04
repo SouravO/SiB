@@ -606,11 +606,78 @@ export async function createUniversity(name: string, cityId: string) {
     try {
         const supabase = createAdminClient();
 
-        // Generate slug from name
-        const slug = name
+        // Generate base slug from name
+        let slug = name
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
             .replace(/(^-|-$)/g, '');
+
+        console.log('[createUniversity] Attempting to create university:', {
+            name,
+            slug,
+            cityId,
+        });
+
+        // First, verify the city exists and get its name for slug generation if needed
+        const { data: cityData, error: cityError } = await supabase
+            .from('cities')
+            .select('id, name')
+            .eq('id', cityId)
+            .single();
+
+        if (cityError || !cityData) {
+            console.error('[createUniversity] City not found:', { cityId, cityError });
+            return {
+                success: false,
+                error: `City with ID ${cityId} not found. Please select a valid city.`
+            };
+        }
+
+        // Check if a university with the exact same name already exists IN THIS CITY
+        const { data: existingInCity, error: cityCheckError } = await supabase
+            .from('universities')
+            .select('id, name')
+            .eq('name', name)
+            .eq('city_id', cityId)
+            .maybeSingle();
+
+        if (existingInCity) {
+            console.warn('[createUniversity] University with same name already exists in this city:', existingInCity);
+            return {
+                success: false,
+                error: `A university with the name "${name}" already exists in ${cityData.name}.`
+            };
+        }
+
+        // Check if the slug is already taken (Slugs are usually unique globally)
+        const { data: slugConflict, error: slugCheckError } = await supabase
+            .from('universities')
+            .select('id, name, city_id')
+            .eq('slug', slug)
+            .maybeSingle();
+
+        if (slugConflict) {
+            console.log('[createUniversity] Slug conflict detected, generating unique slug');
+            // If slug is taken, append city name to slug
+            const citySlug = cityData.name
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/(^-|-$)/g, '');
+            
+            slug = `${slug}-${citySlug}`;
+            
+            // Final check for the new slug
+            const { data: finalSlugConflict } = await supabase
+                .from('universities')
+                .select('id')
+                .eq('slug', slug)
+                .maybeSingle();
+            
+            if (finalSlugConflict) {
+                // If even slug-city is taken, add a short random string
+                slug = `${slug}-${Math.random().toString(36).substring(2, 5)}`;
+            }
+        }
 
         const { data: university, error } = await supabase
             .from('universities')
@@ -622,12 +689,37 @@ export async function createUniversity(name: string, cityId: string) {
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('[createUniversity] Database error:', {
+                code: error.code,
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+            });
+            throw error;
+        }
 
+        console.log('[createUniversity] University created successfully:', university);
         return { success: true, data: university as University };
-    } catch (error) {
-        console.error('Error creating university:', error);
-        return { success: false, error: 'Failed to create university' };
+    } catch (error: any) {
+        console.error('[createUniversity] Error creating university:', {
+            message: error?.message || error,
+            code: error?.code,
+            details: error?.details,
+            hint: error?.hint,
+        });
+
+        // Return specific error messages
+        let errorMessage = 'Failed to create university';
+        if (error?.code === '23505') { // Unique violation
+            errorMessage = 'A university with this name already exists';
+        } else if (error?.code === '23503') { // Foreign key violation
+            errorMessage = 'Invalid city selected. Please try again.';
+        } else if (error?.message) {
+            errorMessage = error.message;
+        }
+
+        return { success: false, error: errorMessage };
     }
 }
 
