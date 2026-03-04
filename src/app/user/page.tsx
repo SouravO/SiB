@@ -335,47 +335,45 @@ export default function UserDashboard() {
                         </div>
 
                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
-                     {filteredStatesForDisplay.map((state) => (
-                 <div
-                 key={state.id}
-                 onClick={() => handleStateChange(state.id)}
-                  className="group relative h-56 sm:h-64 rounded-2xl sm:rounded-[2.5rem] overflow-hidden cursor-pointer bg-slate-900 shadow-2xl transition-all duration-700 hover:-translate-y-3 hover:scale-[1.02]"
-               >
-            {/* Animated Gradient Border Overlay */}
-            <div className="absolute inset-0 p-[2px] rounded-2xl sm:rounded-[2.5rem] bg-gradient-to-br from-purple-500 via-magenta-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            
-            <div className="absolute inset-[2px] bg-slate-900 rounded-[1.4rem] sm:rounded-[2.4rem] overflow-hidden">
-                {/* Background Decor */}
-                <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-600/20 blur-[80px] group-hover:bg-purple-600/40 transition-colors" />
-                
-                <div className="absolute top-4 right-4 sm:top-6 sm:right-6 bg-white/5 backdrop-blur-xl border border-white/10 p-3 sm:p-4 rounded-xl sm:rounded-2xl group-hover:rotate-12 transition-transform duration-500">
-                    <MapPin size={20} className="text-purple-400 sm:w-6 sm:h-6" />
-                </div>
+                    {filteredStatesForDisplay.map((state) => (
+                        <div
+                            key={state.id}
+                            onClick={() => handleStateChange(state.id)}
+                            className="group relative h-48 sm:h-56 rounded-2xl sm:rounded-[2.5rem] overflow-hidden cursor-pointer bg-white shadow-lg shadow-gray-200/50 hover:shadow-xl hover:shadow-purple-200/40 transition-all duration-500 hover:-translate-y-2 border border-gray-100"
+                        >
+                            <div className="absolute inset-0">
+                                {state.image_url ? (
+                                    <img
+                                        src={state.image_url}
+                                        alt={state.name}
+                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-gradient-to-br from-purple-600 to-purple-400 flex items-center justify-center text-white/20">
+                                        <MapPin size={64} className="opacity-20" />
+                                    </div>
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                            </div>
 
-                <div className="absolute bottom-0 left-0 w-full p-6 sm:p-8 text-white">
-                    <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.3em] text-purple-400/80">
-                        Region
-                    </span>
-                    <h3 className="text-2xl sm:text-3xl font-black tracking-tight mt-1">{state.name}</h3>
-                    
-                    <div className="flex items-center gap-2 text-[10px] sm:text-xs font-bold mt-4 sm:mt-6 opacity-100 sm:opacity-0 group-hover:opacity-100 translate-y-0 sm:translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-100">
-                        <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                            EXPLORE CITIES
-                        </span>
-                        <ChevronRight size={14} className="text-blue-400 sm:w-4 sm:h-4" />
+                            <div className="absolute bottom-0 left-0 w-full p-6 sm:p-8 text-white">
+                                <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-white/70 mb-1">
+                                    Region
+                                </p>
+                                <h3 className="text-2xl sm:text-3xl font-black tracking-tight mt-1 mb-4">{state.name}</h3>
+                                <div className="flex items-center gap-2 text-[10px] sm:text-xs font-bold bg-white/20 backdrop-blur-md w-fit px-3 py-1.5 rounded-full group-hover:bg-white group-hover:text-purple-600 transition-all">
+                                    Explore Cities <ChevronRight size={14} />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    {filteredStatesForDisplay.length === 0 && (
+                    <div className="col-span-full py-10 text-center text-gray-500 bg-gray-50 rounded-2xl sm:rounded-[2.5rem] border border-dashed border-gray-200">
+                    <p className="text-sm">No states found matching your search.</p>
                     </div>
-                </div>
-            </div>
-        </div>
-    ))}
-    {filteredStatesForDisplay.length === 0 && (
-        <div className="col-span-full py-10 text-center text-gray-500 bg-gray-50 rounded-2xl sm:rounded-[2.5rem] border border-dashed border-gray-200">
-            <p className="text-sm">No states found matching your search.</p>
-        </div>
-    )}
-</div>
-                    </section>
-                    </>
+                    )}
+                    </div>
+                    </section>                    </>
                 )}
 
                 <section className="space-y-4 sm:space-y-6">
