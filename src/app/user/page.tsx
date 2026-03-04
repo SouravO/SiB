@@ -84,7 +84,6 @@ export default function UserDashboard() {
         setSelectedState(stateId);
         setSelectedCity('');
         setSelectedUniversity('');
-        setCities([]);
         setCitySearchQuery('');
         setShowCityList(false);
         setShowStateList(false);
@@ -163,6 +162,16 @@ export default function UserDashboard() {
         city.states?.name?.toLowerCase() === 'karnataka'
     );
 
+    // Show states filtered by search
+    const filteredStatesForDisplay = states.filter(state =>
+        state.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const filteredInstitutions = allColleges.filter(college =>
+        college.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (college.specialization && college.specialization.toLowerCase().includes(searchQuery.toLowerCase()))
+    );
+
     const filteredColleges = colleges.filter(college =>
         college.name.toLowerCase().includes(collegeSearchQuery.toLowerCase()) ||
         (college.specialization && college.specialization.toLowerCase().includes(collegeSearchQuery.toLowerCase()))
@@ -187,82 +196,192 @@ export default function UserDashboard() {
 
             <BannerCarousel />
 
+            {/* Total Search Bar */}
+            <div className="relative max-w-2xl mx-auto -mt-10 z-10 px-4">
+                <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                        <Search className="h-5 w-5 text-gray-400 group-focus-within:text-purple-600 transition-colors" />
+                    </div>
+                    <input
+                        type="text"
+                        className="block w-full pl-14 pr-6 py-5 bg-white border border-gray-100 rounded-[2rem] shadow-xl shadow-purple-100/20 focus:ring-4 focus:ring-purple-500/10 focus:border-purple-600 outline-none transition-all text-gray-900 font-medium placeholder:text-gray-400"
+                        placeholder="Search for cities, states or institutions..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+            </div>
+
             {/* Content Section */}
             {!selectedCity ? (
                 <>
-                <section className="space-y-6">
-                    {/* Search Bar */}
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                            <Search className="w-5 h-5 text-gray-400" />
+                {/* Show cities when state is selected */}
+                {selectedState && cities.length > 0 ? (
+                    <section className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={() => setSelectedState('')}
+                                    className="text-purple-600 font-bold text-sm flex items-center gap-1 hover:bg-purple-50 px-3 py-1 rounded-full transition-all"
+                                >
+                                    Back
+                                </button>
+                                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Cities in {states.find(s => s.id === selectedState)?.name}</h2>
+                            </div>
                         </div>
-                        <input
-                            type="text"
-                            placeholder="Search for colleges, universities, or cities..."
-                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        {searchQuery && (
-                            <button
-                                onClick={() => setSearchQuery('')}
-                                className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        )}
-                    </div>
 
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Explore Popular Cities</h2>
-                        <Link 
-                            href="/user/cities"
-                            className="text-purple-600 text-sm font-bold flex items-center gap-1 cursor-pointer hover:underline underline-offset-4 transition-all"
-                        >
-                            View All <ChevronRight size={16} />
-                        </Link>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {filteredAllCities.slice(0, 8).map((city) => (
-                            <div 
-                                key={city.id}
-                                onClick={() => handleCityChange(city.id)}
-                                className="group relative h-72 rounded-[2rem] overflow-hidden cursor-pointer bg-white shadow-lg shadow-gray-200/50 hover:shadow-xl hover:shadow-purple-200/40 transition-all duration-500 hover:-translate-y-2 border border-gray-100"
-                            >
-                                <div className="absolute inset-0">
-                                    {city.image_url ? (
-                                        <img 
-                                            src={city.image_url} 
-                                            alt={city.name}
-                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full bg-purple-50 flex items-center justify-center text-purple-200">
-                                            <MapPin size={48} />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {cities.filter(city =>
+                                city.name.toLowerCase().includes(searchQuery.toLowerCase())
+                            ).map((city) => (
+                                <div
+                                    key={city.id}
+                                    onClick={() => handleCityChange(city.id)}
+                                    className="group relative h-72 rounded-[2rem] overflow-hidden cursor-pointer bg-white shadow-lg shadow-gray-200/50 hover:shadow-xl hover:shadow-purple-200/40 transition-all duration-500 hover:-translate-y-2 border border-gray-100"
+                                >
+                                    <div className="absolute inset-0">
+                                        {city.image_url ? (
+                                            <img
+                                                src={city.image_url}
+                                                alt={city.name}
+                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-purple-50 flex items-center justify-center text-purple-200">
+                                                <MapPin size={48} />
+                                            </div>
+                                        )}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                                    </div>
+
+                                    <div className="absolute bottom-0 left-0 w-full p-6 text-white">
+                                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70 mb-1">
+                                            {city.states?.name || 'Explore Now'}
+                                        </p>
+                                        <h3 className="text-2xl font-bold mb-4">{city.name}</h3>
+                                        <div className="flex items-center gap-2 text-xs font-bold bg-white/20 backdrop-blur-md w-fit px-3 py-1.5 rounded-full group-hover:bg-purple-600 group-hover:text-white transition-all">
+                                            Explore <ChevronRight size={14} />
                                         </div>
-                                    )}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-                                </div>
-                                
-                                <div className="absolute bottom-0 left-0 w-full p-6 text-white">
-                                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70 mb-1">
-                                        {city.states?.name || 'Explore Now'}
-                                    </p>
-                                    <h3 className="text-2xl font-bold mb-4">{city.name}</h3>
-                                    <div className="flex items-center gap-2 text-xs font-bold bg-white/20 backdrop-blur-md w-fit px-3 py-1.5 rounded-full group-hover:bg-purple-600 group-hover:text-white transition-all">
-                                        Explore <ChevronRight size={14} />
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
+                    </section>
+                ) : (
+                    <>
+                    {/* Explore with Cities (Karnataka only) */}
+                    <section className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Explore with Cities</h2>
+                            <Link
+                                href="/user/cities"
+                                className="text-purple-600 text-sm font-bold flex items-center gap-1 cursor-pointer hover:underline underline-offset-4 transition-all"
+                            >
+                                View All <ChevronRight size={16} />
+                            </Link>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {filteredAllCities.slice(0, 8).map((city) => (
+                                <div
+                                    key={city.id}
+                                    onClick={() => handleCityChange(city.id)}
+                                    className="group relative h-48 rounded-[2rem] overflow-hidden cursor-pointer bg-white shadow-lg shadow-gray-200/50 hover:shadow-xl hover:shadow-purple-200/40 transition-all duration-500 hover:-translate-y-2 border border-gray-100"
+                                >
+                                    <div className="absolute inset-0">
+                                        {city.image_url ? (
+                                            <img
+                                                src={city.image_url}
+                                                alt={city.name}
+                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-purple-50 flex items-center justify-center text-purple-200">
+                                                <MapPin size={32} />
+                                            </div>
+                                        )}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                                    </div>
+
+                                    <div className="absolute bottom-0 left-0 w-full p-6 text-white">
+                                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70 mb-1">
+                                            {city.states?.name || 'Karnataka'}
+                                        </p>
+                                        <h3 className="text-xl font-bold mb-2">{city.name}</h3>
+                                        <div className="flex items-center gap-2 text-[10px] font-bold bg-white/20 backdrop-blur-md w-fit px-3 py-1.5 rounded-full group-hover:bg-purple-600 group-hover:text-white transition-all">
+                                            Explore <ChevronRight size={12} />
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                            {filteredAllCities.length === 0 && (
+                                <div className="col-span-full py-10 text-center text-gray-500 bg-gray-50 rounded-3xl border border-dashed border-gray-200">
+                                    No cities found matching your search.
+                                </div>
+                            )}
+                        </div>
+                    </section>
+
+                    {/* States Section */}
+                    <section className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Explore by State</h2>
+                            <Link
+                                href="/user/cities"
+                                className="text-purple-600 text-sm font-bold flex items-center gap-1 cursor-pointer hover:underline underline-offset-4 transition-all"
+                            >
+                                View All <ChevronRight size={16} />
+                            </Link>
+                        </div>
+
+                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+    {filteredStatesForDisplay.map((state) => (
+        <div
+            key={state.id}
+            onClick={() => handleStateChange(state.id)}
+            className="group relative h-64 rounded-[2.5rem] overflow-hidden cursor-pointer bg-slate-900 shadow-2xl transition-all duration-700 hover:-translate-y-3 hover:scale-[1.02]"
+        >
+            {/* Animated Gradient Border Overlay */}
+            <div className="absolute inset-0 p-[2px] rounded-[2.5rem] bg-gradient-to-br from-purple-500 via-magenta-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            
+            <div className="absolute inset-[2px] bg-slate-900 rounded-[2.4rem] overflow-hidden">
+                {/* Background Decor */}
+                <div className="absolute -top-24 -right-24 w-48 h-48 bg-purple-600/20 blur-[80px] group-hover:bg-purple-600/40 transition-colors" />
+                
+                <div className="absolute top-6 right-6 bg-white/5 backdrop-blur-xl border border-white/10 p-4 rounded-2xl group-hover:rotate-12 transition-transform duration-500">
+                    <MapPin size={24} className="text-purple-400" />
+                </div>
+
+                <div className="absolute bottom-0 left-0 w-full p-8 text-white">
+                    <span className="text-[11px] font-black uppercase tracking-[0.3em] text-purple-400/80">
+                        Region
+                    </span>
+                    <h3 className="text-3xl font-black tracking-tight mt-1">{state.name}</h3>
+                    
+                    <div className="flex items-center gap-2 text-xs font-bold mt-6 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500 delay-100">
+                        <span className="bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                            EXPLORE CITIES
+                        </span>
+                        <ChevronRight size={16} className="text-blue-400" />
                     </div>
-                </section>
+                </div>
+            </div>
+        </div>
+    ))}
+    {filteredStatesForDisplay.length === 0 && (
+        <div className="col-span-full py-10 text-center text-gray-500 bg-gray-50 rounded-[2.5rem] border border-dashed border-gray-200">
+            No states found matching your search.
+        </div>
+    )}
+</div>
+                    </section>
+                    </>
+                )}
 
                 <section className="space-y-6">
                     <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Explore Institutions</h2>
-                        <Link 
+                        <Link
                             href="/user/colleges"
                             className="text-purple-600 text-sm font-bold flex items-center gap-1 cursor-pointer hover:underline underline-offset-4 transition-all"
                         >
@@ -271,7 +390,7 @@ export default function UserDashboard() {
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {allColleges.slice(0, 6).map((college) => (
+                        {filteredInstitutions.slice(0, 6).map((college) => (
                             <div 
                                 key={college.id}
                                 onClick={() => setSelectedCollegeId(college.id)}
@@ -315,10 +434,16 @@ export default function UserDashboard() {
                                 </div>
                             </div>
                         ))}
+                        {filteredInstitutions.length === 0 && (
+                            <div className="col-span-full py-10 text-center text-gray-500 bg-gray-50 rounded-[2.5rem] border border-dashed border-gray-200">
+                                No institutions found matching your search.
+                            </div>
+                        )}
                     </div>
                 </section>
                 </>
-            ) : (
+
+                 ) : (
                 <section className="space-y-8 animate-in fade-in slide-in-from-bottom-6 duration-500">
                     <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                         <div>
@@ -365,9 +490,7 @@ export default function UserDashboard() {
                                             </div>
                                         )}
                                         <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm">
-                                            <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">
-                                                {college.specialization || 'General'}
-                                            </span>
+                                           
                                         </div>
                                     </div>
                                     
@@ -381,9 +504,16 @@ export default function UserDashboard() {
                                                 <div className="w-8 h-8 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
                                                     <Compass size={14} />
                                                 </div>
+                                                <div className='flex flex-col gap-1'>
+
+                                                 <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">
+                                                {college.specialization || 'General'}
+                                            </span>
                                                 <span className="text-xs font-bold text-gray-400">View Dossier</span>
+                                                </div>
+
                                             </div>
-                                            <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-purple-600 group-hover:text-white transition-all transform group-hover:rotate-45">
+                                            <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-purple-600 group-hover:text-white transition-all ">
                                                 <ChevronRight size={18} />
                                             </div>
                                         </div>
@@ -403,7 +533,7 @@ export default function UserDashboard() {
                         </div>
                     )}
                 </section>
-            )}
+                 )}
 
             {/* College Detail Overlay */}
             {selectedCollegeId && (
