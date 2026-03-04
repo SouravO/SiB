@@ -335,12 +335,12 @@ export default function UserDashboard() {
                         </div>
 
                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
-    {filteredStatesForDisplay.map((state) => (
-        <div
-            key={state.id}
-            onClick={() => handleStateChange(state.id)}
-            className="group relative h-56 sm:h-64 rounded-2xl sm:rounded-[2.5rem] overflow-hidden cursor-pointer bg-slate-900 shadow-2xl transition-all duration-700 hover:-translate-y-3 hover:scale-[1.02]"
-        >
+                     {filteredStatesForDisplay.map((state) => (
+                 <div
+                 key={state.id}
+                 onClick={() => handleStateChange(state.id)}
+                  className="group relative h-56 sm:h-64 rounded-2xl sm:rounded-[2.5rem] overflow-hidden cursor-pointer bg-slate-900 shadow-2xl transition-all duration-700 hover:-translate-y-3 hover:scale-[1.02]"
+               >
             {/* Animated Gradient Border Overlay */}
             <div className="absolute inset-0 p-[2px] rounded-2xl sm:rounded-[2.5rem] bg-gradient-to-br from-purple-500 via-magenta-500 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             

@@ -21,7 +21,8 @@ import {
     School,
     ChevronRight,
     X,
-    Loader2
+    Loader2,
+    Menu
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -31,6 +32,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
     const [user, setUser] = useState<any>(null);
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const pathname = usePathname();
     const router = useRouter();
 
@@ -52,6 +54,11 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
 
     // For college detail overlay in layout if needed
     const [selectedCollegeId, setSelectedCollegeId] = useState<string | null>(null);
+
+    // Close sidebar on path change
+    useEffect(() => {
+        setIsSidebarOpen(false);
+    }, [pathname]);
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -153,13 +160,37 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                        searchResults.colleges.length > 0;
 
     return (
-        <div className="min-h-screen bg-gray-50 flex text-gray-900 font-sans">
+        <div className="min-h-screen bg-gray-50 flex text-gray-900 font-sans relative overflow-x-hidden">
+            {/* Mobile Sidebar Toggle - Side Button */}
+            {/* {!isSidebarOpen && (
+                <button 
+                    onClick={() => setIsSidebarOpen(true)}
+                    className="fixed left-0 top-0 -translate-y-1/2 z-[45] lg:hidden bg-purple-600 text-white p-3 rounded-r-2xl shadow-2xl shadow-purple-600/20 flex items-center justify-center transition-all hover:pl-5 group active:scale-95 animate-in slide-in-from-left duration-500"
+                >
+                    <Menu size={20} className="group-hover:scale-110 transition-transform" />
+                </button>
+            )} */}
+
+            {/* Sidebar Overlay */}
+            {isSidebarOpen && (
+                <div 
+                    className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-40 lg:hidden animate-in fade-in duration-300"
+                    onClick={() => setIsSidebarOpen(false)}
+                />
+            )}
+
             {/* Sidebar */}
-            <aside className="w-20 lg:w-72 bg-white border-r border-gray-200 flex flex-col fixed h-full z-30 transition-all duration-300">
-                <div className="p-6 mb-8">
+            <aside className={`w-72 bg-white border-r border-gray-200 flex flex-col fixed h-full z-50 transition-all duration-300 transform lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="p-6 mb-8 flex items-center justify-between">
                     <div className="w-full aspect-[4/1] bg-gray-100 rounded-xl flex items-center justify-center p-2 overflow-hidden">
                        <img src="/assets/logo.png" alt="logo" className='w-auto h-full object-contain scale-[4.5]'/>
                     </div>
+                    <button 
+                        onClick={() => setIsSidebarOpen(false)}
+                        className="p-2 text-gray-500 hover:bg-gray-100 rounded-xl lg:hidden"
+                    >
+                        <X size={20} />
+                    </button>
                 </div>
 
                 <nav className="flex-1 px-4 space-y-2">
@@ -177,7 +208,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                                 }`}
                             >
                                 <Icon size={18} className={`${isActive ? '' : 'group-hover:scale-110'} transition-transform`} />
-                                <span className="hidden lg:block">{item.label}</span>
+                                <span>{item.label}</span>
                             </Link>
                         );
                     })}
@@ -188,7 +219,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                         <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 font-bold shrink-0">
                             {profile?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
                         </div>
-                        <div className="hidden lg:block min-w-0">
+                        <div className="min-w-0">
                             <p className="text-[10px] text-gray-500 font-mono tracking-tighter uppercase">Member Access</p>
                             <p className="text-sm font-medium truncate text-gray-800">{profile?.full_name || 'Student'}</p>
                         </div>
@@ -196,22 +227,29 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                     <form action={signOut}>
                         <button className="w-full flex items-center gap-4 px-6 py-4 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all font-bold uppercase tracking-widest text-[10px]">
                             <LogOut size={18} />
-                            <span className="hidden lg:block">Sign Out</span>
+                            <span>Sign Out</span>
                         </button>
                     </form>
                 </div>
             </aside>
 
             {/* Main Content Area */}
-            <div className="flex-1 lg:ml-72 transition-all duration-300 flex flex-col min-h-screen bg-gray-50">
+            <div className="flex-1 lg:ml-72 transition-all duration-300 flex flex-col min-h-screen bg-gray-50 w-full">
                 {/* Header / Top Bar */}
-                <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4 flex-1 max-w-2xl relative" ref={searchRef}>
-                        <div className="relative w-full">
+                <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 flex-1 relative" ref={searchRef}>
+                        <button 
+                            onClick={() => setIsSidebarOpen(true)}
+                            className="p-2 text-gray-500 hover:bg-gray-100 rounded-xl lg:hidden shrink-0"
+                        >
+                            <Menu size={20} />
+                        </button>
+                        
+                        <div className="relative w-full max-w-2xl">
                             <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input 
                                 type="text" 
-                                placeholder="Search colleges, cities or boards..."
+                                placeholder="Search..."
                                 className="w-full bg-gray-100 border-none rounded-2xl py-2.5 pl-12 pr-10 text-sm focus:ring-2 focus:ring-purple-500/20 transition-all outline-none"
                                 value={searchQuery}
                                 onChange={(e) => {
@@ -232,7 +270,7 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
 
                         {/* Search Results Dropdown */}
                         {showResults && searchQuery.trim() && (
-                            <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 max-h-[80vh] overflow-y-auto">
+                            <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 max-h-[80vh] overflow-y-auto z-50">
                                 {isSearching ? (
                                     <div className="p-8 text-center">
                                         <Loader2 size={24} className="animate-spin text-purple-600 mx-auto mb-2" />
@@ -333,58 +371,58 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                             </div>
                         )}
                     </div>
-                    <div className="flex items-center gap-4 ml-6">
+                    <div className="flex items-center gap-2 sm:gap-4 ml-2 sm:ml-6">
                         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-purple-50 text-purple-600 rounded-full text-xs font-bold uppercase tracking-wider">
                             <div className="w-1.5 h-1.5 bg-purple-600 rounded-full animate-pulse"></div>
-                            Live Feed
+                            Live
                         </div>
-                        <button className="p-2.5 text-gray-500 hover:bg-gray-100 rounded-xl transition-all relative">
+                        <button className="p-2 sm:p-2.5 text-gray-500 hover:bg-gray-100 rounded-xl transition-all relative">
                             <Bell size={20} />
                             <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
                         </button>
                     </div>
                 </header>
 
-                <main className="flex-1">
+                <main className="flex-1 w-full">
                     {children}
                 </main>
 
                 {/* Footer */}
-                <footer className="px-10 py-12 border-t border-gray-200 mt-auto bg-white">
+                <footer className="px-6 sm:px-10 py-12 border-t border-gray-200 mt-auto bg-white w-full">
                     <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
                         <div className="flex items-center gap-3">
                             <div className="w-32 aspect-[4/1] bg-gray-100 rounded-lg flex items-center justify-center p-2 overflow-hidden">
                                 <img src="/assets/logo.png" alt="logo" className='w-auto h-full object-contain scale-[2]'/>
                             </div>
                         </div>
-                        <div className="flex gap-8 text-sm font-medium text-gray-400">
+                        <div className="flex flex-wrap justify-center gap-4 sm:gap-8 text-sm font-medium text-gray-400">
                             <a href="#" className="hover:text-purple-600 transition-colors">Privacy Policy</a>
                             <a href="#" className="hover:text-purple-600 transition-colors">Terms of Service</a>
                             <a href="#" className="hover:text-purple-600 transition-colors">Help Center</a>
                         </div>
-                        <p className="text-xs text-gray-400 font-medium">© 2026 SiB International. All rights reserved.</p>
+                        <p className="text-xs text-gray-400 font-medium text-center">© 2026 SiB International. All rights reserved.</p>
                     </div>
                 </footer>
             </div>
 
             {/* College Detail Overlay - accessible from anywhere via global search */}
             {selectedCollegeId && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 lg:p-8 animate-in fade-in duration-300">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 lg:p-8 animate-in fade-in duration-300">
                     <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => setSelectedCollegeId(null)}></div>
-                    <div className="relative w-full max-w-5xl h-[90vh] bg-white rounded-[3rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="flex justify-between items-center p-8 border-b border-gray-50 sticky top-0 bg-white z-10">
+                    <div className="relative w-full max-w-5xl h-[95vh] sm:h-[90vh] bg-white rounded-2xl sm:rounded-[3rem] shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="flex justify-between items-center p-6 sm:p-8 border-b border-gray-50 sticky top-0 bg-white z-10">
                             <div className="flex items-center gap-4">
                                 <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center text-purple-600">
                                     <Compass size={20} />
                                 </div>
                                 <div>
-                                    <h2 className="text-lg font-bold text-gray-900">Institution Dossier</h2>
+                                    <h2 className="text-base sm:text-lg font-bold text-gray-900">Institution Dossier</h2>
                                     <p className="text-xs text-gray-400 font-medium tracking-wide uppercase">Verified Profile</p>
                                 </div>
                             </div>
                             <button 
                                 onClick={() => setSelectedCollegeId(null)}
-                                className="p-3 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-2xl transition-all hover:rotate-90 duration-300"
+                                className="p-2 sm:p-3 bg-gray-50 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-xl sm:rounded-2xl transition-all hover:rotate-90 duration-300"
                             >
                                 <X size={24} />
                             </button>
