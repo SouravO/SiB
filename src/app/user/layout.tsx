@@ -153,17 +153,16 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                        searchResults.colleges.length > 0;
 
     return (
-        <div className="min-h-screen bg-[#F8F9FA] flex text-gray-900">
+        <div className="min-h-screen bg-gray-50 flex text-gray-900 font-sans">
             {/* Sidebar */}
-            <aside className="w-20 lg:w-64 bg-white border-r border-gray-100 flex flex-col fixed h-full z-30 transition-all duration-300">
-                <div className="p-6 mb-4 flex items-center justify-center lg:justify-start gap-3">
-                    <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-purple-200">
-                        <GraduationCap size={24} />
+            <aside className="w-20 lg:w-72 bg-white border-r border-gray-200 flex flex-col fixed h-full z-30 transition-all duration-300">
+                <div className="p-6 mb-8">
+                    <div className="w-full aspect-[4/1] bg-gray-100 rounded-xl flex items-center justify-center p-2 overflow-hidden">
+                       <img src="/assets/logo.png" alt="logo" className='w-auto h-full object-contain scale-[4.5]'/>
                     </div>
-                    <span className="hidden lg:block font-bold text-xl tracking-tight text-gray-800">SiB Portal</span>
                 </div>
 
-                <nav className="flex-1 px-4 space-y-1">
+                <nav className="flex-1 px-4 space-y-2">
                     {navItems.map((item) => {
                         const Icon = item.icon;
                         const isActive = pathname === item.href;
@@ -171,32 +170,32 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                             <Link 
                                 key={item.label}
                                 href={item.href}
-                                className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl font-semibold transition-all group ${
+                                className={`w-full flex items-center gap-4 px-6 py-4 transition-all group ${
                                     isActive 
-                                    ? 'bg-purple-50 text-purple-600' 
-                                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                                    ? 'bg-purple-600 text-white font-bold uppercase tracking-widest text-[10px]' 
+                                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100 font-bold uppercase tracking-widest text-[10px]'
                                 }`}
                             >
-                                <Icon size={20} className={`${isActive ? '' : 'group-hover:scale-110'} transition-transform`} />
+                                <Icon size={18} className={`${isActive ? '' : 'group-hover:scale-110'} transition-transform`} />
                                 <span className="hidden lg:block">{item.label}</span>
                             </Link>
                         );
                     })}
                 </nav>
 
-                <div className="p-4 border-t border-gray-100">
-                    <div className="flex items-center gap-3 p-2 bg-gray-50 rounded-2xl mb-4 overflow-hidden">
+                <div className="p-8 border-t border-gray-200">
+                    <div className="flex items-center gap-3 mb-4 overflow-hidden">
                         <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center text-purple-600 font-bold shrink-0">
                             {profile?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
                         </div>
                         <div className="hidden lg:block min-w-0">
-                            <p className="text-sm font-bold truncate text-gray-800">{profile?.full_name || 'Student'}</p>
-                            <p className="text-[10px] text-gray-500 font-medium truncate">{user?.email}</p>
+                            <p className="text-[10px] text-gray-500 font-mono tracking-tighter uppercase">Member Access</p>
+                            <p className="text-sm font-medium truncate text-gray-800">{profile?.full_name || 'Student'}</p>
                         </div>
                     </div>
                     <form action={signOut}>
-                        <button className="w-full flex items-center gap-4 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl font-medium transition-all group">
-                            <LogOut size={20} />
+                        <button className="w-full flex items-center gap-4 px-6 py-4 text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-all font-bold uppercase tracking-widest text-[10px]">
+                            <LogOut size={18} />
                             <span className="hidden lg:block">Sign Out</span>
                         </button>
                     </form>
@@ -204,9 +203,9 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
             </aside>
 
             {/* Main Content Area */}
-            <div className="flex-1 lg:ml-64 transition-all duration-300 flex flex-col min-h-screen">
+            <div className="flex-1 lg:ml-72 transition-all duration-300 flex flex-col min-h-screen bg-gray-50">
                 {/* Header / Top Bar */}
-                <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-100 px-6 py-4 flex items-center justify-between">
+                <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4 flex-1 max-w-2xl relative" ref={searchRef}>
                         <div className="relative w-full">
                             <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -276,8 +275,6 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                                                     <button
                                                         key={univ.id}
                                                         onClick={() => {
-                                                            // For university, we might want to filter dashboard by university
-                                                            // Dashboard doesn't have univId param yet, but it can handle it via logic
                                                             router.push(`/user?cityId=${univ.city_id}`);
                                                             setShowResults(false);
                                                             setSearchQuery('');
@@ -353,13 +350,12 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                 </main>
 
                 {/* Footer */}
-                <footer className="px-10 py-12 border-t border-gray-100 mt-auto bg-white">
+                <footer className="px-10 py-12 border-t border-gray-200 mt-auto bg-white">
                     <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center text-white">
-                                <GraduationCap size={18} />
+                            <div className="w-32 aspect-[4/1] bg-gray-100 rounded-lg flex items-center justify-center p-2 overflow-hidden">
+                                <img src="/assets/logo.png" alt="logo" className='w-auto h-full object-contain scale-[2]'/>
                             </div>
-                            <span className="font-bold text-lg tracking-tight text-gray-800">SiB Portal</span>
                         </div>
                         <div className="flex gap-8 text-sm font-medium text-gray-400">
                             <a href="#" className="hover:text-purple-600 transition-colors">Privacy Policy</a>
