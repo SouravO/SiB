@@ -126,7 +126,8 @@ export default function UniversityManagementClient({ initialUniversities, showAd
         }
     };
 
-    const handleOpenEditModal = (university: any) => {
+    const handleOpenEditModal = async (university: any) => {
+        await loadCities();
         setEditingUniversity(university);
         setNewUniversityName(university.name);
         setSelectedCity(university.city_id);
