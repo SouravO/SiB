@@ -798,12 +798,44 @@ export async function updateUniversity(
         const supabase = createAdminClient();
 
         const updateData: any = { ...data };
-        if (data.name) {
-            updateData.slug = data.name
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/(^-|-$)/g, '');
+
+        // Remove empty city_id
+        if (!data.city_id) {
+            delete updateData.city_id;
         }
+
+        // Only update slug if name is changing
+        if (data.name) {
+            // First, get the current university to check if name is actually changing
+            const { data: currentUniversity } = await supabase
+                .from('universities')
+                .select('name, city_id')
+                .eq('id', universityId)
+                .single();
+
+            // Only update slug if the name is different from current
+            if (currentUniversity && currentUniversity.name !== data.name) {
+                updateData.slug = data.name
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/(^-|-$)/g, '');
+
+                // Check if same name already exists in the same city (for a different university)
+                const { data: existingUniversity } = await supabase
+                    .from('universities')
+                    .select('id')
+                    .eq('slug', updateData.slug)
+                    .eq('city_id', data.city_id || currentUniversity.city_id)
+                    .neq('id', universityId)
+                    .maybeSingle();
+
+                if (existingUniversity) {
+                    return { success: false, error: 'A university with this name already exists in this city' };
+                }
+            }
+        }
+
+        console.log('[updateUniversity] Updating:', { universityId, updateData });
 
         const { data: university, error } = await supabase
             .from('universities')
@@ -812,12 +844,14 @@ export async function updateUniversity(
             .select()
             .single();
 
+        console.log('[updateUniversity] Result:', { university, error });
+
         if (error) throw error;
 
         return { success: true, data: university as University };
     } catch (error) {
         console.error('Error updating university:', error);
-        return { success: false, error: 'Failed to update university' };
+        return { success: false, error: JSON.stringify(error) };
     }
 }
 

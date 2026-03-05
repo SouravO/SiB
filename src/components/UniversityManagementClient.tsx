@@ -147,11 +147,19 @@ export default function UniversityManagementClient({ initialUniversities, showAd
 
         setIsLoading(true);
 
+        console.log('[UniversityManagementClient] Updating university:', {
+            id: editingUniversity.id,
+            name: newUniversityName.trim(),
+            city_id: selectedCity,
+        });
+
         try {
             const result = await updateUniversity(editingUniversity.id, {
                 name: newUniversityName.trim(),
                 city_id: selectedCity
             });
+
+            console.log('[UniversityManagementClient] Update result:', result);
 
             if (result.success && result.data) {
                 showSuccess('University updated successfully', 'University Updated');
@@ -161,11 +169,12 @@ export default function UniversityManagementClient({ initialUniversities, showAd
                 setNewUniversityName('');
                 setSelectedCity('');
             } else {
+                console.error('[UniversityManagementClient] Update failed:', result.error);
                 showError(result.error || 'Failed to update university', 'Update Failed');
             }
         } catch (err) {
-            console.error('Error updating university:', err);
-            showError('An error occurred while updating the university', 'Error');
+            console.error('[UniversityManagementClient] Error updating university:', err);
+            showError('An error occurred while updating the university. Check browser console for details.', 'Error');
         } finally {
             setIsLoading(false);
         }
