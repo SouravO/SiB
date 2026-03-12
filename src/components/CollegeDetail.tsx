@@ -297,15 +297,48 @@ export default function CollegeDetail({ collegeId, showHeader = true }: CollegeD
                 </div>
 
                 {college.brochure_url && (
-                  <a
-                    href={`${college.brochure_url}?attachment=true`}
-                    download
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full block text-center py-4 border border-gray-300 text-gray-700 text-xs font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all"
+                  <button
+                    onClick={async () => {
+                      try {
+                        console.log('Downloading brochure from:', college.brochure_url);
+
+                        // Fetch the PDF from Cloudinary
+                        const response = await fetch(college.brochure_url);
+
+                        console.log('Response status:', response.status);
+                        console.log('Response headers:', response.headers);
+
+                        if (!response.ok) {
+                          throw new Error(`Failed to download: ${response.status}`);
+                        }
+
+                        const blob = await response.blob();
+                        console.log('Blob size:', blob.size, 'bytes');
+
+                        if (blob.size === 0) {
+                          throw new Error('File is empty - the PDF may not have been uploaded correctly');
+                        }
+
+                        // Create download link
+                        const url = window.URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = `${college.name || 'brochure'}.pdf`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        window.URL.revokeObjectURL(url);
+                      } catch (error) {
+                        console.error('Download error:', error);
+                        // Fallback: open in new tab
+                        console.log('Opening in new tab instead');
+                        window.open(college.brochure_url, '_blank');
+                      }
+                    }}
+                    className="w-full block text-center py-4 border border-gray-300 text-gray-700 text-xs font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all cursor-pointer"
                   >
                     Download Brochure
-                  </a>
+                  </button>
                 )}
               </div>
 
