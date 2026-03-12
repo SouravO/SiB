@@ -573,7 +573,7 @@ export default function EditCollegeModal({ isOpen, collegeId, onClose, onSuccess
                                             <div className="space-y-3">
                                                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Brochure PDF</label>
                                                 {college?.brochure_url && (
-                                                    <a href={college.brochure_url} target="_blank" rel="noopener"
+                                                    <a href={`${college.brochure_url}?attachment=true`} target="_blank" rel="noopener"
                                                         className="flex items-center gap-2 text-sm text-purple-600 hover:text-purple-800 transition-colors">
                                                         <FileText className="w-4 h-4" /> Current brochure
                                                         <ExternalLink className="w-3 h-3" />

@@ -298,7 +298,10 @@ export default function CollegeDetail({ collegeId, showHeader = true }: CollegeD
 
                 {college.brochure_url && (
                   <a
-                    href={college.brochure_url}
+                    href={`${college.brochure_url}?attachment=true`}
+                    download
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="w-full block text-center py-4 border border-gray-300 text-gray-700 text-xs font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all"
                   >
                     Download Brochure
