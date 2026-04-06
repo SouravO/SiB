@@ -10,7 +10,7 @@ interface FloatingContactButtonsProps {
 
 export default function FloatingContactButtons({ 
     whatsappNumber = '919876543210', 
-    phoneNumber = '919876543210' 
+    phoneNumber = '919187590248' 
 }: FloatingContactButtonsProps) {
     const [isExpanded, setIsExpanded] = useState(false);
 
