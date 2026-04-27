@@ -615,8 +615,8 @@ export default function UserDashboard() {
       )}
 
       <FloatingContactButtons
-        whatsappNumber="9187590248"
-        phoneNumber="9187590248"
+        whatsappNumber="+919187590248"
+        phoneNumber="+919187590248"
       />
     </div>
   );

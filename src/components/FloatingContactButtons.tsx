@@ -9,8 +9,8 @@ interface FloatingContactButtonsProps {
 }
 
 export default function FloatingContactButtons({
-  whatsappNumber = "9187590248",
-  phoneNumber = "919187590248",
+  whatsappNumber = "+919187590248",
+  phoneNumber = "+919187590248",
 }: FloatingContactButtonsProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -19,7 +19,7 @@ export default function FloatingContactButtons({
   };
 
   const handlePhoneClick = () => {
-    window.location.href = `tel:+${phoneNumber}`;
+    window.location.href = `tel:${phoneNumber}`;
   };
 
   return (
